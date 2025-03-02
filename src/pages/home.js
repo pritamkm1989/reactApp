@@ -3,6 +3,7 @@ import '../reportWebVitals';  // Or './App.css' if you named it differently
 import Header from "../components/header";
 import Footer from "../components/footer";
 import ImageCarousel from "../components/ImageCarousel";
+import Service from "../components/Service";
 
 
 const HomePage = () => {
@@ -26,21 +27,7 @@ const HomePage = () => {
       {/* Services Section */}
       <section className="py-16 bg-white text-center">
         <h3 className="text-3xl font-semibold">Our Services</h3>
-        <p className="text-gray-600 mt-2">We offer a wide range of medical services</p>
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6 px-6">
-          <div className="p-6 border rounded-lg shadow-md">
-            <h4 className="text-xl font-bold">General Checkup</h4>
-            <p className="text-gray-500 mt-2">Routine health assessments for all ages.</p>
-          </div>
-          <div className="p-6 border rounded-lg shadow-md">
-            <h4 className="text-xl font-bold">Specialist Consultation</h4>
-            <p className="text-gray-500 mt-2">Expert medical advice from specialists.</p>
-          </div>
-          <div className="p-6 border rounded-lg shadow-md">
-            <h4 className="text-xl font-bold">Emergency Services</h4>
-            <p className="text-gray-500 mt-2">24/7 medical emergency support.</p>
-          </div>
-        </div>
+        <Service/>
       </section>
 
       {/* Contact Section */}

@@ -1,6 +1,7 @@
 import React from "react";
 import Header from "../components/header";
 import Footer from "../components/footer";
+import ApplianceRepairService from "../components/Service";
 
 const AboutPage = () => {
   return (
@@ -12,6 +13,7 @@ const AboutPage = () => {
         <p className="text-gray-600 mt-2">
           Our mission is to deliver high-quality healthcare services to everyone.
         </p>
+        <ApplianceRepairService/>
       </main>
       <Footer />
     </div>
