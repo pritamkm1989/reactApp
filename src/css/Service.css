@@ -92,3 +92,7 @@ body {
     }
   }
   
+  .error-placeholder::placeholder {
+    color: red;
+    font-weight: bold;
+  }
