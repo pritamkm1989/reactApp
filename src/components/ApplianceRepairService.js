@@ -80,27 +80,33 @@ const ApplianceRepairService = ({ items, title }) => {
 
     console.log("Service Data:", cartForm); // Debug log
 
-    addToCart(service);
+    addToCart(cartForm);
   };
 
+  const gridColumnsClass = categories.length === 2 ? 'grid-cols-2' : 
+                          categories.length === 3 ? 'lg:grid-cols-3 xl:grid-cols-4' :
+                          'sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
       <h1 className="text-center text-2xl font-semibold mb-4">{title}</h1>
 
-      {/* Main Categories */}
-      <div className="flex justify-around space-x-6 mb-6">
-        {categories.map((category) => (
-          <div
-            key={category.id}
-            onClick={() => handleCategoryClick(category.id)}
-            className={`w-1/3 p-4 bg-white border rounded-lg shadow-lg cursor-pointer 
-                        hover:bg-gray-200 transition-all ${selectedCategory === category.id ? "border-blue-500" : ""
-              }`}
-          >
-            <h2 className="text-center text-xl font-medium">{category.name}</h2>
-          </div>
-        ))}
-      </div>
+    {/* Main Categories */}
+<div className={`grid gap-6 mb-6 ${gridColumnsClass}`}>
+  {categories.map((category) => (
+    <div
+      key={category.id}
+      onClick={() => handleCategoryClick(category.id)}
+      className={`p-4 bg-white border rounded-lg shadow-lg cursor-pointer 
+                  hover:bg-gray-200 transition-all ${selectedCategory === category.id ? "border-blue-500" : ""
+                }`}
+    >
+      <h2 className="text-center text-xl font-medium">{category.name}</h2>
+    </div>
+  ))}
+</div>
+
+
+
 
       {/* Subcategories */}
       {selectedCategory && (
@@ -314,8 +320,8 @@ const ApplianceRepairService = ({ items, title }) => {
       </div>
 
       {/* Submit Button */}
-      <button onClick={() => handleServiceSelection()} className="mt-6 w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-all shadow-md">
-        Submit Request
+      <button onClick={() => handleServiceSelection()} className="mt-6 w-full bg-blue-600 text-white  text-white py-2 rounded-lg hover:bg-green-600 transition-all shadow-md">
+        Add to Cart !!!
     </button>
     </div>
   );

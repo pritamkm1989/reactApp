@@ -17,12 +17,7 @@ const HomePage = () => {
         <ImageCarousel /> {/* Carousel Component */}
       </section>
 
-      {/* Hero Section */}
-      <header className="bg-gray-100 py-20 text-center">
-        <h2 className="text-4xl font-bold">Your Health is Our Priority</h2>
-        <p className="text-gray-600 mt-2">Providing quality healthcare solutions for everyone.</p>
-        <button className="mt-4 px-6 py-2 bg-blue-600 text-white rounded">Make an Appointment</button>
-      </header>
+    
       
       {/* Services Section */}
       <section className="py-16 bg-white text-center">

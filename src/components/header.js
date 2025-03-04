@@ -1,40 +1,40 @@
-import React, { useState,useContext,useEffect  } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { CartContext } from "../CartContext";
-
+import cartIcon from "../img/icons8-shopping-cart-48.png";
+import { Link } from 'react-router-dom';
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
- 
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const { cart } = useContext(CartContext);
   
   useEffect(() => {
     console.log('Header cart update:', cart); // Debug log
-}, [cart]);
+  }, [cart]);
 
   return (
     <header>
-      {/* Sticky nav with z-index for proper layering */}
-      <nav className="bg-blue-600 p-4 text-white sticky top-0 z-50 shadow-md w-full">
+      {/* Fixed nav with z-index for proper layering */}
+      <nav className="bg-blue-600 p-4 text-white fixed top-0 left-0 w-full z-50 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">UrbEx</h1>
-          <ul className={`md:flex space-x-6 ${isMenuOpen ? "block" : "hidden"}`}>
-            <li><a href="/" className="hover:underline">Home</a></li>
-            <li><a href="/about" className="hover:underline">Services</a></li>
-            <li><a href="/about" className="hover:underline">Doctors</a></li>
-            <li><a href="#" className="hover:underline">Contact</a></li>
+          <h1 className="text-2xl font-bold"><Link to="/">UrbEx</Link></h1>
+          <ul className={`md:flex md:space-x-6 ${isMenuOpen ? "block" : "hidden"} md:block ml-auto`}>
+        
+            <li><Link to="/service" className="hover:underline">Services</Link></li>
+            <li><Link to="/about" className="hover:underline">Doctors</Link></li>
+            <li><Link to="#" className="hover:underline">Contact</Link></li>
           </ul>
-           {/* Cart information */}
-           <div className="relative">
-              <a href="/cart" className="hover:underline">
-                Cart
-              </a>
-              <span className="absolute top-0 right-0 mt-1 mr-1 px-2 py-1 text-xs font-bold text-white bg-red-600 rounded-full">
+          {/* Cart information */}
+          <div className="relative ml-4">
+            <Link to="/cart" className="hover:underline flex items-center">
+              <span className="material-icons"><img src={cartIcon}/></span>
+              <span className="counter absolute -top-2 -right-2 px-2 py-1 text-xs font-bold text-white bg-red-600 rounded-full">
                 {cart.length}
               </span>
-            </div>
+            </Link>
+          </div>
           <button
-            className="md:hidden px-3 py-2 border rounded"
+            className="md:hidden px-3 py-2 border rounded ml-4"
             onClick={toggleMenu}
           >
             ☰

@@ -1,9 +1,9 @@
 import React from "react";
 import Header from "../components/header";
 import Footer from "../components/footer";
+import Service from "../components/Service";
 
-
-const AboutPage = () => {
+const ServicePage = () => {
   return (
     <div className="font-sans">
       <Header />
@@ -13,11 +13,11 @@ const AboutPage = () => {
         <p className="text-gray-600 mt-2">
           Our mission is to deliver high-quality healthcare services to everyone.
         </p>
-      
+        <Service/>
       </main>
       <Footer />
     </div>
   );
 };
 
-export default AboutPage;
+export default ServicePage;
