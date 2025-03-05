@@ -24,11 +24,11 @@ const ImageBox = () => {
   }, []);
 
   return (
-    <div className="grid grid-cols-2 gap-4 p-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4">
       {images.map((imageUrl, index) => (
         <motion.div
           key={index}
-          className="w-64 h-64 overflow-hidden rounded-2xl shadow-lg cursor-pointer relative"
+          className="w-32 h-32 md:w-48 md:h-48 overflow-hidden rounded-2xl shadow-lg cursor-pointer relative"
           animate={{ rotateY: flippedIndex === index ? 180 : 0 }}
           transition={{ duration: 0.6 }}
           style={{ perspective: 1000 }}

@@ -19,5 +19,29 @@ header {
     margin-top: 10px;
 }
 .content{
-  margin-top: 4em;
+ 
+}
+
+.image-carousel-container {
+  width: 100%; /* Take full width on mobile */
+  max-width: 400px; /* Limit maximum width */
+  height: auto; /* Maintain aspect ratio */
+  margin: 0 auto; /* Center on the screen */
+}
+
+.image-carousel-image {
+  width: 100%; /* Fully responsive */
+  height: auto; /* Maintain aspect ratio */
+  object-fit: cover; /* Ensure images fill the container nicely */
+}
+
+.carousel-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  color: white;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
 }

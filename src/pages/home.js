@@ -12,10 +12,11 @@ const HomePage = () => {
       <div className="font-sans">
 
 
-        {/* Image Carousel */}
-        <section className="flex justify-center items-center h-screen gap-8 p-8">
-          <ImageBox/>
-          <ImageCarousel /> {/* Carousel Component */}
+        <section className="flex justify-left items-center h-screen gap-8 p-8 max-w-screen-lg mx-auto">
+          <ImageBox />
+          <div className="justify-right items-right hidden sm:block">
+            <ImageCarousel />
+          </div>
         </section>
 
 
