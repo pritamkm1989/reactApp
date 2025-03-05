@@ -15,7 +15,7 @@ const Header = () => {
   return (
     <header>
       {/* Fixed nav with z-index for proper layering */}
-      <nav className="bg-blue-600 p-4 text-white fixed top-0 left-0 w-full z-50 shadow-md">
+      <nav className=" p-4 fixed top-0 left-0 w-full z-50 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold"><Link to="/">UrbEx</Link></h1>
           <ul className={`md:flex md:space-x-6 ${isMenuOpen ? "block" : "hidden"} md:block ml-auto`}>

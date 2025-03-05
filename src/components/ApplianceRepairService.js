@@ -6,6 +6,7 @@ import { CartContext } from "../CartContext";
 
 const ApplianceRepairService = ({ items, title }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategoryName, setSelectedCategoryName] = useState(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
   const [selectedBrand, setSelectedBrand] = useState(null);
@@ -21,8 +22,9 @@ const ApplianceRepairService = ({ items, title }) => {
 
   const categories = items;
 
-  const handleCategoryClick = (categoryId) => {
-    setSelectedCategory(categoryId === selectedCategory ? null : categoryId);
+  const handleCategoryClick = (category) => {
+    setSelectedCategory(category.id === selectedCategory ? null : category.id);
+    setSelectedCategoryName(category.name === selectedCategoryName ? null : category.name);
     setSelectedSubcategory(null);
     setSelectedType(null);
     setSelectedBrand(null); // Reset brand on category change
@@ -56,7 +58,7 @@ const ApplianceRepairService = ({ items, title }) => {
   const handleServiceSelection = (service) => {
     console.log('')
     const cartForm = new CartForm(
-      selectedCategory,
+      selectedCategoryName,
       selectedSubcategory,
       selectedType,
       selectedBrand,
@@ -95,7 +97,7 @@ const ApplianceRepairService = ({ items, title }) => {
   {categories.map((category) => (
     <div
       key={category.id}
-      onClick={() => handleCategoryClick(category.id)}
+      onClick={() => handleCategoryClick(category)}
       className={`p-4 bg-white border rounded-lg shadow-lg cursor-pointer 
                   hover:bg-gray-200 transition-all ${selectedCategory === category.id ? "border-blue-500" : ""
                 }`}
