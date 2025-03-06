@@ -12,9 +12,9 @@ const HomePage = () => {
       <div className="font-sans">
 
 
-        <section className="flex justify-left items-center h-screen gap-8 p-8 max-w-screen-lg mx-auto">
-          <ImageBox />
-          <div className="justify-right items-right hidden sm:block">
+        <section className="flex justify-start items-center min-h-screen gap-4 p-8 max-w-screen-lg mx-auto">
+          <ImageBox  className="w-full sm:w-auto" />
+          <div className="justify-end items-right hidden sm:block">
             <ImageCarousel />
           </div>
         </section>
