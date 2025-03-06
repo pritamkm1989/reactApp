@@ -1,0 +1,56 @@
+
+/* src/index.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+header {
+    position: fixed;
+  left: 0;
+  width: 100%;
+  background-color: #fff; /* You can change this to your desired background color */
+  z-index: 1000; /* Ensure the header is above other content */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Add a subtle shadow for better visibility */
+ 
+  }
+
+.counter{
+    margin-top: 10px;
+}
+.content{
+ 
+}
+
+.image-carousel-container {
+  width: 100%; /* Take full width on mobile */
+  max-width: 400px; /* Limit maximum width */
+  height: auto; /* Maintain aspect ratio */
+  margin: 0 auto; /* Center on the screen */
+}
+
+.image-carousel-image {
+  width: 100%; /* Fully responsive */
+  height: auto; /* Maintain aspect ratio */
+  object-fit: cover; /* Ensure images fill the container nicely */
+}
+
+.carousel-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  color: white;
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none; /* Internet Explorer 10+ */
+  scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
