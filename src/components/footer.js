@@ -4,8 +4,8 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <footer className="bg-blue-600 text-white py-6 text-center">
-      <p>© 2025 MediPlus. All rights reserved.</p>
+    <footer className="p-4  top-0 left-0 w-full z-50 shadow-md bg-white text-blue-600 text-xl font-bold text-center">
+      <p>© 2025 UrbEx. All rights reserved.</p>
       <p>Terms & Conditions | Privacy Policy</p>
     </footer>
   );

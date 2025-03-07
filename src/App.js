@@ -4,6 +4,7 @@ import HomePage from './pages/home';
 import AboutPage from './pages/about';
 import ServicePage from './pages/ourservice';
 import Cart from './pages/cart';
+import ContactPage from './pages/contact'
 import { CartProvider } from './CartContext'
 
 const App = () => {
@@ -15,6 +16,7 @@ const App = () => {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/service" element={<ServicePage />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/contact" element={<ContactPage />} />
       </Routes>
     </Router>
     </CartProvider>

@@ -1,5 +1,6 @@
 import React from "react";
 import Layout from './layout';
+import Testimonials from '../components/testimonials'
 
 
 const AboutPage = () => {
@@ -12,7 +13,7 @@ const AboutPage = () => {
           <p className="text-gray-600 mt-2">
             Our mission is to deliver high-quality healthcare services to everyone.
         </p>
-
+        <Testimonials/>
         </main>
       </div>
     </Layout>
