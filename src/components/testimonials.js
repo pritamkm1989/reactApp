@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 
 const testimonials = [
@@ -44,26 +44,43 @@ const StarRating = ({ rating }) => {
 
 const Testimonials = () => {
   const sliderRef = useRef(null);
+  const [isTouching, setIsTouching] = useState(false);
+  const [scrollAmount, setScrollAmount] = useState(0);
+
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+  // Auto-scroll function
+  const autoScroll = () => {
+    if (sliderRef.current && !isTouching) {
+      setScrollAmount((prevScroll) => {
+        let newScroll = prevScroll + 1;
+        if (newScroll >= sliderRef.current.scrollWidth / 2) {
+          newScroll = 0;
+        }
+        sliderRef.current.scrollLeft = newScroll;
+        return newScroll;
+      });
+    }
+    if (!isTouching) {
+      requestAnimationFrame(autoScroll); // Continue auto-scrolling
+    }
+  };
 
   useEffect(() => {
-    const slider = sliderRef.current;
-    let scrollAmount = 0;
+    if (!isTouching) {
+      const interval = requestAnimationFrame(autoScroll); // Start auto-scrolling when component mounts
+      return () => cancelAnimationFrame(interval); // Clean up when component unmounts
+    }
+  }, [isTouching]);
 
-    const autoScroll = () => {
-      if (slider) {
-        scrollAmount += 1;
-        if (scrollAmount >= slider.scrollWidth / 2) {
-          scrollAmount = 0;
-          slider.scrollTo({ left: 0, behavior: "instant" });
-        } else {
-          slider.scrollTo({ left: scrollAmount, behavior: "smooth" });
-        }
-      }
-    };
+  // Handle touch start and end for pausing auto-scrolling
+  const handleTouchStart = () => setIsTouching(true);
+  const handleTouchEnd = () => setIsTouching(false);
+  const handleTouchCancel = () => setIsTouching(false);
 
-    const interval = setInterval(autoScroll, 30); // Adjust speed
-    return () => clearInterval(interval);
-  }, []);
+  // Handle mouse enter and leave for pausing auto-scrolling on desktop
+  const handleMouseEnter = () => setIsTouching(true);
+  const handleMouseLeave = () => setIsTouching(false);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -71,12 +88,11 @@ const Testimonials = () => {
       <div
         className="flex gap-6 overflow-hidden"
         ref={sliderRef}
-        onMouseEnter={() => clearInterval(window.testimonialInterval)}
-        onMouseLeave={() => {
-          window.testimonialInterval = setInterval(() => {
-            sliderRef.current.scrollLeft += 1;
-          }, 30);
-        }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchCancel}
       >
         {[...testimonials, ...testimonials].map((testimonial, index) => (
           <div
