@@ -54,3 +54,73 @@ header {
 .hide-scrollbar::-webkit-scrollbar {
   display: none; /* Safari and Chrome */
 }
+
+.search-input {
+  flex-grow: 1;
+  padding: 10px;
+  margin-right: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.menu-button {
+  padding: 10px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.city-list {
+  list-style-type: none;
+  padding: 0;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.city-list li {
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-top: -1px;
+  background-color: white;
+}
+
+@media (max-width: 600px) {
+  .search-input {
+    padding: 8px;
+  }
+
+  .menu-button {
+    padding: 8px;
+  }
+
+  .city-list li {
+    padding: 8px;
+  }
+}
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
+.animated-typing-text-container {
+  background-color: #f0f4f8; /* fixed light background color */
+  padding: 2rem;
+  border-radius: 10px;
+  text-align: center; /* right-to-left text alignment */
+  direction: rtl; /* right-to-left text direction */
+  font-family: 'Montserrat', sans-serif; /* nice font */
+  font-size: 1.2rem;
+  line-height: 1.5;
+}
+
+.animated-title,
+.animated-subtitle,
+.animated-paragraph {
+  white-space: pre-wrap; /* preserves whitespace and line breaks */
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s, transform 1s;
+}
+
+.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
