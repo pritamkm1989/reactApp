@@ -53,7 +53,7 @@ const LoginModal = ({ isOpen, onClose }) => {
                     </div>
                     <button
                         type="submit"
-                        className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+                        className="w-full bg-[rgb(255,198,48)] text-white py-2 rounded-md"
                     >
                         Login
           </button>

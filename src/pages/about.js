@@ -9,9 +9,9 @@ const AboutPage = () => {
       <div className="font-sans">
         <main className="py-16 text-center">
           <h2 className="text-4xl font-bold">About Us</h2>
-          <p className="text-gray-600 mt-4">We are a healthcare provider dedicated to your well-being.</p>
+          <p className="text-gray-600 mt-4">At Urbex, we specialize in expert service and repair for a wide range of products and appliances, ensuring quality and reliability. </p>
           <p className="text-gray-600 mt-2">
-            Our mission is to deliver high-quality healthcare services to everyone.
+          Our skilled technicians are dedicated to providing fast, efficient, and customer-focused solutions..
         </p>
         <Testimonials/>
         </main>

@@ -20,7 +20,7 @@ const Service = () => {
                 {homeServices.map((service) => (
                     <button
                         key={service.id}
-                        className={`text-xl font-semibold transition ${selectedService === service.id ? "text-blue-600 font-bold" : "text-gray-800"
+                        className={`text-xl font-semibold transition ${selectedService === service.id ? "text-[rgb(255,198,48)] font-bold" : "text-gray-800"
                             }`}
                         onClick={() => setSelectedService(service.id)}
                     >

@@ -72,7 +72,7 @@ const Header = () => {
              
               <MdNotificationsActive className="p2 text-xl">
                 </MdNotificationsActive> 
-              <span className="counter absolute top-2 -right-2 px-2 py-1 text-xs font-bold text-white bg-red-600 rounded-full">
+              <span className="counter absolute top-2 -right-2 px-2 py-1 text-xs font-bold text-white bg-[rgb(255,198,48)] rounded-full">
                 {cart.length}
               </span>
             </Link>
@@ -84,7 +84,7 @@ const Header = () => {
               className="p-2 rounded-full hover:bg-gray-200"
               onClick={() => setShowCities(!showCities)}
             >
-              <FaMapMarkerAlt className="text-blue-600 text-lg" />
+              <FaMapMarkerAlt className="text-[rgb(255,198,48)] text-lg" />
             </button>)}
 
             {/* City List (Dropdown) */}
@@ -130,17 +130,17 @@ const Header = () => {
                 className="absolute right-0 mt-2 bg-white border shadow-lg rounded-lg w-30 z-50"
               >
                 <li>
-                  <Link to="/service" className="px-1 py-1 text-s  rounded-lg  hover:bg-green-600 transition-all cursor-pointer">
+                  <Link to="/service" className="px-1 py-1 text-s  rounded-lg  hover:bg-[rgb(255,198,48)] transition-all cursor-pointer">
                     Services
 </Link>
                 </li>
                 <li>
-                  <Link to="/about" className="px-1 py-1 text-s  rounded-lg  hover:bg-green-600 transition-all cursor-pointer">
-                    Doctors
+                  <Link to="/about" className="px-1 py-1 text-s  rounded-lg  hover:bg-[rgb(255,198,48)] transition-all cursor-pointer">
+                    About
 </Link>
                 </li>
                 <li>
-                  <Link to="/contact" className="px-1 py-1 text-s  rounded-lg  hover:bg-green-600 transition-all cursor-pointer">
+                  <Link to="/contact" className="px-1 py-1 text-s  rounded-lg  hover:bg-[rgb(255,198,48)] transition-all cursor-pointer">
                     Contact
 </Link>
                 </li>

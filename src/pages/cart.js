@@ -17,14 +17,14 @@ const Cart = () => {
         <Layout>
             <div className="container mx-auto p-4">
 
-                <h1 className="text-2xl font-bold mb-4">Your Cart</h1>
+                <h1 className="font-bold mb-4 text-[rgb(255,198,48)]">Your Cart</h1>
 
 
                 <div className="overflow-x-auto">
                     <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
                         <thead>
-                            <tr>
-                                <th className="py-2 px-4 border-b border-gray-200">Sl No</th>
+                            <tr className = "text-[rgb(255,198,48)] text-s font-bold text-cente">
+                                <th className="py-2 px-4 border-b border-gray-200 ">Sl No</th>
                                 <th className="py-2 px-4 border-b border-gray-200">Category</th>
                                 <th className="py-2 px-4 border-b border-gray-200">Subcategory</th>
                                 <th className="py-2 px-4 border-b border-gray-200">Type</th>
@@ -34,7 +34,7 @@ const Cart = () => {
                                 <th className="py-2 px-4 border-b border-gray-200">Street</th>
                                 <th className="py-2 px-4 border-b border-gray-200">Landmark</th>
                                 <th className="py-2 px-4 border-b border-gray-200">City</th>
-                                <th className="py-2 px-4 border-b border-gray-200">State</th>
+                                <th className="py-2 px-4 border-b border-gray-200">Pin </th>
                                 <th className="py-2 px-4 border-b border-gray-200">Email</th>
                                 <th className="py-2 px-4 border-b border-gray-200">Mobile</th>
                                 <th className="py-2 px-4 border-b border-gray-200">Action</th>
@@ -44,7 +44,7 @@ const Cart = () => {
                         <tbody>
                             {cartArray.map((item, index) => (
                                 <tr key={index}>
-                                    <td className="py-2 px-4 border-b border-gray-200">{index}</td>
+                                    <td className="py-2 px-4 border-b border-gray-200">{index+1}</td>
                                     <td className="py-2 px-4 border-b border-gray-200">{item.category}</td>
                                     <td className="py-2 px-4 border-b border-gray-200">{item.subcategory.name}</td>
                                     <td className="py-2 px-4 border-b border-gray-200">{item.type}</td>

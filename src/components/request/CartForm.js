@@ -1,5 +1,5 @@
 class CartForm {
-    constructor(category, subcategory, type, brand, issueDescription, uploadedImage, street, landmark, city, state,email,mobile) {
+    constructor(category, subcategory, type, brand, issueDescription, uploadedImage, street, landmark, city, state, email, mobile) {
         this.category = category;
         this.subcategory = subcategory;
         this.type = type;
@@ -11,8 +11,8 @@ class CartForm {
             landmark: landmark,
             city: city,
             state: state,
-            email:email,
-            mobile:mobile
+            email: email,
+            mobile: mobile
         };
     }
 
@@ -27,9 +27,20 @@ class CartForm {
         if (!this.issueDescription) errors.push({ field: 'issueDescription', message: "Issue description is required" });
         if (!this.address.street) errors.push({ field: 'street', message: "Street is required" });
         if (!this.address.city) errors.push({ field: 'city', message: "City is required" });
-        if (!this.address.state) errors.push({ field: 'state', message: "State is required" });
+        if (!this.address.state) errors.push({ field: 'state', message: "Pin Numbrer is required" });
         if (!this.address.email) errors.push({ field: 'email', message: "Email Id is required" });
         if (!this.address.mobile) errors.push({ field: 'mobile', message: "Mobile Number is required" });
+        if (!/\S+@\S+\.\S+/.test(this.address.email)) {
+            errors.push({ field: 'email', message: "Invalid Email Id" });
+        }
+
+        if (!/^\d{10}$/.test(this.address.mobile)) {
+            errors.push({ field: 'mobile', message: "Mobile Number must be 10 digits" });
+        }
+
+        if (!/^\d{4}$/.test(this.address.state) && !/^\d{6}$/.test(this.address.state)) {
+            errors.push({ field: 'state', message: "PIN must be 4 or 6 digits" });
+        }
 
         return errors;
     }

@@ -20,8 +20,8 @@ const ServicePage = () => {
                 {services.map((service) => (
                     <button
                         key={service.id}
-                        className={`px-4 py-2 text-xl  rounded-lg font-semibold   hover:bg-green-600 transition-all
-                        ${selectedService === service.id ? "bg-blue-600 text-white" : "bg-white text-gray-800 hover:bg-green-600"
+                        className={`px-4 py-2 text-xl  rounded-lg font-semibold    transition-all
+                        ${selectedService === service.id ? "bg-[rgb(255,198,48)] text-white" : "bg-white text-gray-800 "
                         }`}
                         onClick={() => setSelectedService(service.id)}
                     >

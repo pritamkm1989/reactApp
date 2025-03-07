@@ -99,7 +99,7 @@ const ApplianceRepairService = ({ items, title }) => {
       key={category.id}
       onClick={() => handleCategoryClick(category)}
       className={`p-4 bg-white border rounded-lg shadow-lg cursor-pointer 
-                  hover:bg-gray-200 transition-all ${selectedCategory === category.id ? "border-blue-500" : ""
+                  hover:bg-gray-200 transition-all ${selectedCategory === category.id ? "border-[rgb(255,198,48)]" : ""
                 }`}
     >
       <h2 className="text-center text-xl font-medium">{category.name}</h2>
@@ -120,7 +120,7 @@ const ApplianceRepairService = ({ items, title }) => {
                 key={subcategory.id}
                 onClick={() => handleSubcategoryClick(subcategory)}
                 className={`w-1/3 p-4 bg-white border rounded-lg shadow-lg cursor-pointer 
-                            hover:bg-gray-200 transition-all ${selectedSubcategory?.id === subcategory.id ? "border-blue-500" : ""
+                            hover:bg-gray-200 transition-all ${selectedSubcategory?.id === subcategory.id ? "border-[rgb(255,198,48)]" : ""
                   }`}
               >
                 <img
@@ -147,7 +147,7 @@ const ApplianceRepairService = ({ items, title }) => {
                 Select Type:
              </label>
               <select
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none"
                 onChange={(e) => {setSelectedType(e.target.value);setErrors(errors.filter(error => error.field !== 'type')); }}
                 value={selectedType || ""}
               >
@@ -172,7 +172,7 @@ const ApplianceRepairService = ({ items, title }) => {
                   Select Brand:
                </label>
                 <select
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none"
                   onChange=
                   {(e) => {
                     setSelectedBrand(e.target.value);
@@ -212,7 +212,7 @@ const ApplianceRepairService = ({ items, title }) => {
           <div className="grid grid-cols-2 gap-6">
             {/* Text Area */}
             <textarea
-              className="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all resize-none"
+              className="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none transition-all resize-none"
               placeholder={getError('issueDescription') || 'Comments'}
               style={{
                 borderColor: hasError('issueDescription') ? 'red' : 'initial',
@@ -226,7 +226,7 @@ const ApplianceRepairService = ({ items, title }) => {
             {/* Upload Section */}
             {/* Upload Section */}
             <div className="flex flex-col items-center">
-              <label className="w-full flex items-center justify-center p-3 bg-blue-500 text-white rounded-lg cursor-pointer hover:bg-blue-600 transition-all shadow-md">
+              <label className="w-full flex items-center justify-center p-3 bg-[rgb(255,198,48)] text-white rounded-lg cursor-pointer hover:bg-[rgb(255,198,48)] transition-all shadow-md">
                 <FiUpload className="mr-2 text-lg" />
           Upload Images
           <input
@@ -255,7 +255,7 @@ const ApplianceRepairService = ({ items, title }) => {
             borderColor: hasError('street') ? 'red' : 'initial',
             borderWidth: hasError('street') ? '2px' : '0'
           }}
-          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none"
           onChange={(e) => setStreet(e.target.value)}
           onFocus={() => setErrors(errors.filter(error => error.field !== 'street'))} 
         />
@@ -263,7 +263,7 @@ const ApplianceRepairService = ({ items, title }) => {
         <input
           type="text"
           placeholder="Landmark"
-          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none"
           onChange={(e) => setLandmark(e.target.value)}
         />
        
@@ -275,18 +275,19 @@ const ApplianceRepairService = ({ items, title }) => {
             borderColor: hasError('city') ? 'red' : 'initial',
             borderWidth: hasError('city') ? '2px' : '0'
           }}
-          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none"
           onChange={(e) => setCity(e.target.value)}
           onFocus={() => setErrors(errors.filter(error => error.field !== 'city'))} 
         />
        
         <input
           type="text"
-          placeholder={getError('state') || 'state'}
+          placeholder={getError('state') || 'Pin Numbrer'}
           style={{
             borderColor: getError('state') ? 'red' : 'initial',
             borderWidth: getError('state') ? '2px' : '0'
           }}
+          value={getError('state') ? '' : state} // Ensure the value of the input is properly bound to 'state'
           className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
           onChange={(e) => setState(e.target.value)}
           onFocus={() => setErrors(errors.filter(error => error.field !== 'state'))} 
@@ -302,7 +303,8 @@ const ApplianceRepairService = ({ items, title }) => {
             borderColor: hasError('email') ? 'red' : 'initial',
             borderWidth: hasError('email') ? '2px' : '0'
           }}
-          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          value={getError('email') ? '' : email}
+          className="w-full p-2 border rounded-lg focus:ring-2 focus:outline-none"
           onChange={(e) => setEmail(e.target.value)}
           onFocus={() => setErrors(errors.filter(error => error.field !== 'email'))} 
         />
@@ -314,7 +316,8 @@ const ApplianceRepairService = ({ items, title }) => {
             borderColor: getError('mobile') ? 'red' : 'initial',
             borderWidth: getError('mobile') ? '2px' : '0'
           }}
-          className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          value={getError('mobile') ? '' : mobile}
+          className="w-full p-2 border rounded-lg focus:ring-2 focus:outline-none"
           onChange={(e) => setMobile(e.target.value)}
           onFocus={() => setErrors(errors.filter(error => error.field !== 'mobile'))} 
         />
@@ -322,7 +325,7 @@ const ApplianceRepairService = ({ items, title }) => {
       </div>
 
       {/* Submit Button */}
-      <button onClick={() => handleServiceSelection()} className="mt-6 w-full bg-blue-600 text-white  text-white py-2 rounded-lg hover:bg-green-600 transition-all shadow-md">
+      <button onClick={() => handleServiceSelection()} className="mt-6 w-full bg-[rgb(255,198,48)] text-white  text-white py-2 rounded-lg  transition-all shadow-md">
         Add to Cart !!!
     </button>
     </div>

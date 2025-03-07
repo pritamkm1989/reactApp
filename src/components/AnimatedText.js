@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 
 const AnimatedTypingText = () => {
   const [displayedText, setDisplayedText] = useState('');
-  const fullText = "A few words about the company\nA Study of Creativity\nLorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.";
+  const fullText = "At Urbex, we specialize in expert service and repair for a wide range of products and appliances, ensuring quality and reliability. Our skilled technicians are dedicated to providing fast, efficient, and customer-focused solutions.";
 
   useEffect(() => {
     let index = 0;
@@ -20,8 +20,6 @@ const AnimatedTypingText = () => {
 
   return (
     <div className="animated-typing-text animated-typing-text-container">
-      <h6>A few words about the company</h6>
-      <h3>A Study of Creativity</h3>
       <p>{displayedText}</p>
     </div>
   );

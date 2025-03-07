@@ -16,7 +16,7 @@ const ContactPage = () => {
                         <input type="text" placeholder="Your Name" className="w-full p-3 border rounded mb-4" />
                         <input type="email" placeholder="Your Email" className="w-full p-3 border rounded mb-4" />
                         <textarea placeholder="Your Message" className="w-full p-3 border rounded mb-4"></textarea>
-                        <button className="px-6 py-2 bg-blue-600 text-white rounded">Send Message</button>
+                        <button className="px-6 py-2 bg-[rgb(255,198,48)] text-white rounded">Send Message</button>
                     </form>
                 </section>
 
