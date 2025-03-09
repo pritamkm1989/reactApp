@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { FiUpload } from "react-icons/fi";
 import CartForm from './request/CartForm'
+import {CityContext } from '../CityContext'
 
 import { CartContext } from "../CartContext";
 
@@ -44,6 +45,8 @@ const ApplianceRepairService = ({ items, title }) => {
   };
 
   const { addToCart } = useContext(CartContext)
+
+  const {selectedCity,toggleShowCities} = useContext(CityContext)
 
   const getError = (field) => {
     const error = errors.find(error => error.field === field);
@@ -275,9 +278,11 @@ const ApplianceRepairService = ({ items, title }) => {
             borderColor: hasError('city') ? 'red' : 'initial',
             borderWidth: hasError('city') ? '2px' : '0'
           }}
+          value = {selectedCity}
           className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none"
           onChange={(e) => setCity(e.target.value)}
           onFocus={() => setErrors(errors.filter(error => error.field !== 'city'))} 
+          onClick = {() => toggleShowCities()}
         />
        
         <input

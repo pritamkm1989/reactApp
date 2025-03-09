@@ -6,20 +6,23 @@ import ServicePage from './pages/ourservice';
 import Cart from './pages/cart';
 import ContactPage from './pages/contact'
 import { CartProvider } from './CartContext'
+import { CityProvider } from './CityContext'
 
 const App = () => {
   return (
-    <CartProvider>
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/service" element={<ServicePage />} />
-        <Route path="/cart" element={<Cart />} />
-        <Route path="/contact" element={<ContactPage />} />
-      </Routes>
-    </Router>
-    </CartProvider>
+    <CityProvider>
+      <CartProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/service" element={<ServicePage />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/contact" element={<ContactPage />} />
+          </Routes>
+        </Router>
+      </CartProvider>
+    </CityProvider>
   );
 };
 

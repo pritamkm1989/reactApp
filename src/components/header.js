@@ -1,5 +1,6 @@
 import React, { useState, useContext, useEffect } from "react";
 import { CartContext } from "../CartContext";
+import { CityContext } from "../CityContext";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { MdNotificationsActive } from "react-icons/md";
 import { FaUserLock } from "react-icons/fa6";
@@ -9,19 +10,22 @@ import urbex from "../img/urbex.png";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [selectedCity, setSelectedCity] = useState(null);
+ 
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const cities = ["Bhuabaneswar", "Puri", "Cuttack", "Houston"];
+  
   const openLoginModal = () => setIsLoginModalOpen(true);
   const closeLoginModal = () => setIsLoginModalOpen(false);
-  const [showCities, setShowCities] = useState(true);
+
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const { cart } = useContext(CartContext);
+  const { cities,toggleShowCities ,showCities,selectedCity,addCity} = useContext(CityContext);
 
   useEffect(() => {
     console.log("Header cart update:", cart); // Debug log
   }, [cart]);
+  
+  
 
   return (
     <header>
@@ -82,7 +86,7 @@ const Header = () => {
           <div className="relative ml-4">
             {showCities && (<button
               className="p-2 rounded-full hover:bg-gray-200"
-              onClick={() => setShowCities(!showCities)}
+              onClick={() => toggleShowCities()}
             >
               <FaMapMarkerAlt className="text-[rgb(255,198,48)] text-lg" />
             </button>)}
@@ -95,8 +99,7 @@ const Header = () => {
                     key={index}
                     className="p-2 hover:bg-gray-100 cursor-pointer"
                     onClick={() => {
-                      setSelectedCity(city);
-                      setShowCities(false);
+                      addCity(city);
                     }}
                   >
                     {city}
@@ -109,7 +112,7 @@ const Header = () => {
 
           {/* City Display for Desktop (Aligned to the right) */}
           {selectedCity && (
-            <span className="md:block ml-4 text-gray-700 font-semibold" onClick={() => setShowCities(!showCities)}>
+            <span className="md:block ml-4 text-gray-700 font-semibold" onClick={() => toggleShowCities()}>
               {selectedCity}
             </span>
           )}
