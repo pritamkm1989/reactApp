@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext,useEffect } from "react";
 import { FiUpload } from "react-icons/fi";
 import CartForm from './request/CartForm'
 import {CityContext } from '../CityContext'
@@ -57,6 +57,12 @@ const ApplianceRepairService = ({ items, title }) => {
     return errors.some(error => error.field === field);
   };
   
+  useEffect(() => {
+    if (selectedCity) {
+      console.log("Selected city changed:", selectedCity.name);
+      setCity(selectedCity.name)
+    }
+  }, [selectedCity]);
 
   const handleServiceSelection = (service) => {
     console.log('')
@@ -75,7 +81,7 @@ const ApplianceRepairService = ({ items, title }) => {
       mobile
     );
 
-    console.log("Service Data:", cartForm); 
+    console.log("Service Data:", city); 
     const validationErrors = cartForm.validate();
     console.log(validationErrors);
     if (validationErrors.length > 0) {
@@ -278,14 +284,13 @@ const ApplianceRepairService = ({ items, title }) => {
             borderColor: hasError('city') ? 'red' : 'initial',
             borderWidth: hasError('city') ? '2px' : '0'
           }}
-          value = {selectedCity}
+          value = {selectedCity?selectedCity.name:''}
           className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none"
-          onChange={(e) => setCity(e.target.value)}
           onFocus={() => setErrors(errors.filter(error => error.field !== 'city'))} 
           onClick = {() => toggleShowCities()}
         />
        
-        <input
+        {/* <input
           type="text"
           placeholder={getError('state') || 'Pin Numbrer'}
           style={{
@@ -298,6 +303,22 @@ const ApplianceRepairService = ({ items, title }) => {
           onFocus={() => setErrors(errors.filter(error => error.field !== 'state'))} 
         />
 
+ */
+          <select value={selectedCity} onChange={(e) => setState(e.target.value)}
+          value={state || ""}>
+            <option value="">Select a city</option>
+            {selectedCity && (
+              
+                selectedCity.pin.map(pin => (
+                  <option key={pin} value={pin}>
+                    {pin}
+                  </option>
+                ))
+              
+
+            )}
+          </select>
+        }
         
         {/* email and mobile */}
 

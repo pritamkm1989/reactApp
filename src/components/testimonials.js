@@ -44,43 +44,26 @@ const StarRating = ({ rating }) => {
 
 const Testimonials = () => {
   const sliderRef = useRef(null);
+  const animationRef = useRef(null);
   const [isTouching, setIsTouching] = useState(false);
-  const [scrollAmount, setScrollAmount] = useState(0);
 
-  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-
-  // Auto-scroll function
   const autoScroll = () => {
     if (sliderRef.current && !isTouching) {
-      setScrollAmount((prevScroll) => {
-        let newScroll = prevScroll + 1;
-        if (newScroll >= sliderRef.current.scrollWidth / 2) {
-          newScroll = 0;
-        }
-        sliderRef.current.scrollLeft = newScroll;
-        return newScroll;
-      });
-    }
-    if (!isTouching) {
-      requestAnimationFrame(autoScroll); // Continue auto-scrolling
+      sliderRef.current.scrollLeft += 1;
+      if (sliderRef.current.scrollLeft >= sliderRef.current.scrollWidth / 2) {
+        sliderRef.current.scrollLeft = 0;
+      }
+      animationRef.current = requestAnimationFrame(autoScroll);
     }
   };
 
   useEffect(() => {
     if (!isTouching) {
-      const interval = requestAnimationFrame(autoScroll); // Start auto-scrolling when component mounts
-      return () => cancelAnimationFrame(interval); // Clean up when component unmounts
+      animationRef.current = requestAnimationFrame(autoScroll);
     }
+
+    return () => cancelAnimationFrame(animationRef.current);
   }, [isTouching]);
-
-  // Handle touch start and end for pausing auto-scrolling
-  const handleTouchStart = () => setIsTouching(true);
-  const handleTouchEnd = () => setIsTouching(false);
-  const handleTouchCancel = () => setIsTouching(false);
-
-  // Handle mouse enter and leave for pausing auto-scrolling on desktop
-  const handleMouseEnter = () => setIsTouching(true);
-  const handleMouseLeave = () => setIsTouching(false);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -88,11 +71,11 @@ const Testimonials = () => {
       <div
         className="flex gap-6 overflow-hidden"
         ref={sliderRef}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchCancel={handleTouchCancel}
+        onMouseEnter={() => setIsTouching(true)}
+        onMouseLeave={() => setIsTouching(false)}
+        onTouchStart={() => setIsTouching(true)}
+        onTouchEnd={() => setIsTouching(false)}
+        onTouchCancel={() => setIsTouching(false)}
       >
         {[...testimonials, ...testimonials].map((testimonial, index) => (
           <div

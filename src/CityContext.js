@@ -4,7 +4,10 @@ export const CityContext = createContext();
 
 
 
-const cities = ["Bhuabaneswar", "Puri", "Cuttack", "Berhampur"];
+const cities = [{ name: "Bhubaneswar", pin : [751001,751002,751003,751004] },
+  { name: "Puri", pin: [752001,752002,752003] },
+  { name: "Cuttack", pin: [753001,753002] },
+  { name: "Berhampur", pin: [760001,760002] }]
 
 export const CityProvider = ({ children }) => {
     const [selectedCity, setSelectedCity] = useState(null);

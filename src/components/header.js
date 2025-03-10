@@ -102,7 +102,7 @@ const Header = () => {
                       addCity(city);
                     }}
                   >
-                    {city}
+                    {city.name}
                   </li>
                 ))}
               </ul>
@@ -113,7 +113,7 @@ const Header = () => {
           {/* City Display for Desktop (Aligned to the right) */}
           {selectedCity && (
             <span className="md:block ml-4 text-gray-700 font-semibold" onClick={() => toggleShowCities()}>
-              {selectedCity}
+              {selectedCity.name}
             </span>
           )}
 
