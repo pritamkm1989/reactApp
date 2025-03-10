@@ -20,8 +20,8 @@ const Cart = () => {
                 <h1 className="font-bold mb-4 text-[rgb(255,198,48)]">Your Cart</h1>
 
 
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md">
+                <div >
+                    <table className="min-w-full bg-white border border-gray-200 rounded-lg shadow-md scrollbar-hide">
                         <thead>
                             <tr className = "text-[rgb(255,198,48)] text-s font-bold text-cente">
                                 <th className="py-2 px-4 border-b border-gray-200 ">Sl No</th>

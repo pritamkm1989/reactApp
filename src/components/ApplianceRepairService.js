@@ -306,7 +306,7 @@ const ApplianceRepairService = ({ items, title }) => {
  */
           <select value={selectedCity} onChange={(e) => setState(e.target.value)}
           value={state || ""}>
-            <option value="">Select a city</option>
+            <option value="">Select a Pin</option>
             {selectedCity && (
               
                 selectedCity.pin.map(pin => (
