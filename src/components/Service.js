@@ -1,45 +1,45 @@
 
-
 import { useState } from "react";
 import Appliance from "../components/ApplianceRepairService";
-
-
-import { homeServices, categories } from '../services/data';
-
-
+import { categories } from '../services/data';
 
 
 const Service = () => {
-    const [selectedService, setSelectedService] = useState("Appliance"); // Default selection
-    
+    const [selectedService, setSelectedService] = useState(1); // Default selection
+    const allCategories = Object.values(categories).flat();
+    const allCategories2 = Object.values(categories).flat();
 
     return (
         <div className="flex flex-col items-center">
             {/* Service Selection Links */}
             <div className="flex gap-6 mb-6">
-                {homeServices.map((service) => (
-                    <button
-                        key={service.id}
-                        className={`text-xl font-semibold transition ${selectedService === service.id ? "text-[rgb(255,198,48)] font-bold" : "text-gray-800"
-                            }`}
-                        onClick={() => setSelectedService(service.id)}
-                    >
-                        {service.name}
-                    </button>
-                ))}
+            {allCategories && allCategories.map((cat) => {
+            if ( cat.homePageEnabled) {
+              return (<button
+                key={cat.id}
+                className={`px-4 py-2 text-xl  rounded-lg font-semibold    transition-all
+                        ${selectedService === cat.id ? "bg-[rgb(255,198,48)] text-white" : "bg-white text-gray-800 "
+                  }`}
+                onClick={() => setSelectedService(cat.id)}
+              >
+                {cat.name}
+              </button>)
+            }
+            return null;
+          })}
             </div>
 
              {/* Display Only the Selected Component */}
 
              <div className="w-full">
-             {Object.entries(categories).map(([key, value]) => {
-                    const serviceId = key.replace("Categories", "");
-                    if (selectedService === serviceId) {
+             {allCategories2.map((value) => {
+    
+                    if (selectedService === value.id) {
                         return (
                             <Appliance
-                                key={key}
-                                items={value}
-                                title={homeServices.find(service => service.id === serviceId).name}
+                                key={value.id}
+                                items={value.items}
+                               title={value.name}
                             />
                         );
                     }

@@ -30,7 +30,7 @@ const HomePage = () => {
         {/* Services Section */}
         <section className="py-16 bg-white text-center">
           <h3 className="text-3xl font-semibold">Our Services</h3>
-          <Service />
+          <Service   />
         </section>
 
 
