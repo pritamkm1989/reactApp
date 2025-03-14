@@ -1,13 +1,26 @@
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import Appliance from "../components/ApplianceRepairService";
 import { categories } from '../services/data';
+import axios from "axios";
 
 
 const Service = () => {
     const [selectedService, setSelectedService] = useState(1); // Default selection
-    const allCategories = Object.values(categories).flat();
-    const allCategories2 = Object.values(categories).flat();
+    const [categories, setCategories] = useState([]);
+    const allCategories = categories;
+    const allCategories2 = categories;
+
+    useEffect(() => {
+      axios.get("/api/product") // 🔹 Replace with your actual API endpoint
+          .then(response => {
+              // Ensure response.data is in the expected format
+              console.log('fetch')
+              const allCategories = response.data;
+              setCategories(allCategories);
+          })
+          .catch(error => console.error("Error fetching product:", error));
+  }, []);
 
     return (
         <div className="flex flex-col items-center">
@@ -38,7 +51,7 @@ const Service = () => {
                         return (
                             <Appliance
                                 key={value.id}
-                                items={value.items}
+                                items={value.categories}
                                title={value.name}
                             />
                         );

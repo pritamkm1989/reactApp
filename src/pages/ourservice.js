@@ -1,15 +1,28 @@
 import React from "react";
 import Layout from './layout';
 import Appliance from "../components/ApplianceRepairService";
-import { useState } from "react";
+import { useState,useEffect } from "react";
+import axios from "axios";
 
-import { categories } from '../services/data';
+//import { categories } from '../services/data';
 
 const ServicePage = () => {
-
+  const [categories, setCategories] = useState([]);
   const [selectedService, setSelectedService] = useState(1); // Default selection
-  const allCategories = Object.values(categories).flat();
-  const allCategories2 = Object.values(categories).flat();
+  const allCategories = categories;
+  const allCategories2 = categories;
+
+  useEffect(() => {
+    axios.get("http://localhost:5000/api/product") // 🔹 Replace with your actual API endpoint
+        .then(response => {
+            // Ensure response.data is in the expected format
+            console.log('fetch')
+            const allCategories = response.data;
+            console.log(allCategories)
+            setCategories(allCategories);
+        })
+        .catch(error => console.error("Error fetching product:", error));
+}, []);
 
 
   return (
@@ -45,7 +58,7 @@ const ServicePage = () => {
               return (
                 <Appliance
                   key={value.id}
-                  items={value.items}
+                  items={value.categories}
                   title={value.name}
                 />
               );

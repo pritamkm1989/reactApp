@@ -133,7 +133,7 @@ const ApplianceRepairService = ({ items, title }) => {
                   }`}
               >
                 <img
-                  src={subcategory.image}
+                  src={subcategory.imageUrl}
                   alt={subcategory.name}
                   className="w-full h-44 object-cover rounded-lg mb-2"
                 />
@@ -164,8 +164,8 @@ const ApplianceRepairService = ({ items, title }) => {
                   Select an option
                </option>
                 {selectedSubcategory.serviceTypes.map((type, index) => (
-                  <option key={index} value={type}>
-                    {type}
+                  <option key={index} value={type.serviceType}>
+                    {type.serviceType}
                   </option>
                 ))}
               </select>
@@ -193,8 +193,8 @@ const ApplianceRepairService = ({ items, title }) => {
                     Select a brand
                  </option>
                   {selectedSubcategory.brands.map((brand, index) => (
-                    <option key={index} value={brand}>
-                      {brand}
+                    <option key={index} value={brand.brandName}>
+                      {brand.brandName}
                     </option>
                   ))}
                 </select>
