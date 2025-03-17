@@ -17,6 +17,7 @@ const AdminPage = () => {
     const [refreshKey, setRefreshKey] = useState(0);
     const [loading, setLoading] = useState(false);
     const [subCategoryId, setSubCategoryId] = useState(null);
+    const [uploadedImages, setUploadedImages] = useState({});
 
     useEffect(() => {
         setLoading(true); // Start loading before API call
@@ -30,7 +31,7 @@ const AdminPage = () => {
                     const updatedCategory = response.data
                         .find((p) => p.id === selectedProductId)
                         ?.categories.find((c) => c.id === selectedCategory.id);
-                    
+
                     setSelectedCategory(updatedCategory);
                 }
             })
@@ -38,23 +39,28 @@ const AdminPage = () => {
             .finally(() => setLoading(false)); // Stop loading after API call
     }, [refreshKey]);
 
-
-    const addNewCategory = async (categoryName) => {
+    const apiPost = async (url, body) => {
         setLoading(true);
+        console.log(body)
         try {
-            const response = await fetch("/api/product/saveOrUpdateCategory", {
+            const response = await fetch(url, {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ name: categoryName, productId: selectedProductId }), // Pass the productName
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
             });
-            setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
+            return await response.json();
         } catch (error) {
-            console.error(error);
+            console.error(`Error in API call: ${url}`, error);
         } finally {
             setLoading(false);
         }
+    };
+
+    const addNewCategory = async (categoryName) => {
+
+        await apiPost("/api/product/saveOrUpdateCategory", { name: categoryName, productId: selectedProductId });
+        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
+
     };
     const viewCategory = (productId, categoryId) => {
         console.log(productId, categoryId);
@@ -65,22 +71,10 @@ const AdminPage = () => {
     };
 
     const addNewProduct = async (value) => {
-        console.log(value);
-        setLoading(true);
-        try {
-            const response = await fetch("/api/product/saveOrUpdateProduct", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ name: value }), // Pass the productName
-            });
-            setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+        await apiPost("/api/product/saveOrUpdateProduct", { name: value }); // Pass the productName
+
+        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
+
     };
 
 
@@ -100,8 +94,8 @@ const AdminPage = () => {
 
     const submitAlert = () => {
         console.log("User Input:", inputValue);
-        if (inputValue.length < 3) {
-            alert('shold be 3 or more chatacter.');
+        if (inputValue.length < 3 ||  inputValue.length > 10) {
+            alert('Name should between  3 and 10 characters.');
             return;
 
         }
@@ -128,116 +122,94 @@ const AdminPage = () => {
     };
 
     const changeStatus = async (productId, status, action) => {
-        setLoading(true);
-        try {
-            const response = await fetch("/api/product/saveOrUpdateProduct", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ id: productId, [action]: !status }), // Pass the productName
-            });
-            setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+        await apiPost("/api/product/saveOrUpdateProduct", { id: productId, [action]: !status }); // Pass the productName
+
+        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
+
     }
     const changeCategoryStatus = async (categoryId, status, action) => {
-        setLoading(true);
-        try {
-            const response = await fetch("/api/product/saveOrUpdateCategory", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ id: categoryId, [action]: !status }), // Pass the productName
-            });
-            setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+        await apiPost("/api/product/saveOrUpdateCategory", { id: categoryId, [action]: !status }); // Pass the productName
+
+        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
+
     }
 
-    const handleFileChange = async  (event) => {
+    const handleFileChange = async (event, subcategoryId) => {
         const file = event.target.files[0];
         if (file) {
             //setUploadedImage(URL.createObjectURL(file));
+
+            const validFormats = ["image/png", "image/jpeg", "image/jpg"];
+            if (!validFormats.includes(file.type)) {
+                alert("Invalid file type. Only PNG and JPEG are allowed.");
+                return;
+            }
+
             const imagePath = await uploadImage(file);
             console.log(imagePath)
+            if (imagePath) {
+                // Update only the specific subcategory's image
+                setUploadedImages((prev) => ({
+                    ...prev,
+                    [subcategoryId]: imagePath,
+                }));
+            }
         }
     };
 
 
     const handleNewSubcategoryClick = async () => {
         console.log(newSubCategory);
-        if (newSubCategory.length < 3) {
-            alert('Subcategory shold be 3 or more chatacter.');
+        if (newSubCategory.length < 3 ||  newSubCategory.length > 10) {
+            alert('Subcategory name should between  3 and 10 characters.');
             return;
 
         }
-        setLoading(true);
-        try {
-            const response = await fetch("/api/product/saveOrUpdateSubCategory", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ categoryId: selectedCategory.id, name: newSubCategory }), // Pass the productName
-            });
-            setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+        await apiPost("/api/product/saveOrUpdateSubCategory", { categoryId: selectedCategory.id, name: newSubCategory }); // Pass the productName
+        setNewSubCategory('');
+        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
     }
 
     const addNewServiceType = async (value) => {
-        console.log(value);
-        setLoading(true);
-        try {
-            const response = await fetch("/api/product/saveOrUpdateServicType", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ serviceType: value, isActive: true, subCategoryId: subCategoryId }), // Pass the productName
-            });
-            setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+        await apiPost("/api/product/saveOrUpdateServicType", { serviceType: value, isActive: true, subCategoryId: subCategoryId }); // Pass the productName
+
+        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
+
     };
 
     const addNewBrand = async (value) => {
-        console.log(value);
-        setLoading(true);
-        try {
-            const response = await fetch("/api/product/saveOrUpdateBrand", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ brandName: value, isActive: true, subCategoryId: subCategoryId }), // Pass the productName
-            });
-            setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setLoading(false);
-        }
+        await apiPost("/api/product/saveOrUpdateBrand", { brandName: value, isActive: true, subCategoryId: subCategoryId }); // Pass the productName
+
+        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
+
     };
 
 
-    const toggleSubCategory = async () => {
+    const toggleSubCategory = async (subcategoryId , isActive) => {
         //vaidate all available then only make active 
+        const subCategory = selectedCategory.subcategories.find((subcat) => subcat.id === subcategoryId)
+        console.log(subCategory)
+        if(!isActive && (subCategory.serviceTypes.length < 1 || subCategory.brands.length < 1 || subCategory.imageUrl == null)){
+            return alert("Add Some Service type, sub type & display image , before activating.")
+        }
+
+        await apiPost("/api/product/saveOrUpdateSubCategory", { id: subcategoryId, isActive: !isActive }); // Pass the productName
+
+        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
     }
+
+    const updateImage = async (subcategoryId) => {
+        console.log(uploadedImages[subcategoryId])
+        await apiPost("/api/product/saveOrUpdateSubCategory", { id: subcategoryId, imageUrl: uploadedImages[subcategoryId] }); // Pass the productName
+
+        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
+    }
+
+    const Button = ({ onClick, children, className }) => (
+        <button onClick={onClick} className={`px-4 py-2 rounded-full ${className}`}>
+            {children}
+        </button>
+    );
 
     return (
         <Layout>
@@ -261,12 +233,12 @@ const AdminPage = () => {
                             placeholder="Type here..."
                         />
                         <div className="flex justify-end space-x-2">
-                            <button onClick={closeAlert} className="px-4 py-2 bg-gray-500 text-white rounded">
+                            <Button onClick={closeAlert} className="px-4 py-2 bg-gray-500 text-white rounded">
                                 Close
-              </button>
-                            <button onClick={submitAlert} className="px-4 py-2 bg-blue-500 text-white rounded">
+              </Button>
+                            <Button onClick={submitAlert} className="px-4 py-2 bg-blue-500 text-white rounded">
                                 OK
-              </button>
+              </Button>
                         </div>
                     </div>
                 </div>
@@ -292,29 +264,29 @@ const AdminPage = () => {
                                 <td className="p-2 border">{product.name}</td>
                                 <td className="p-2 border">
                                     {product.homePageEnabled ? (
-                                        <span onClick={() => changeStatus(product.id, product.homePageEnabled, 'homePageEnabled')} className="text-green-500 bg-gray-200 px-2 py-1 rounded mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Active</span>
+                                        <span onClick={() => changeStatus(product.id, product.homePageEnabled, 'homePageEnabled')} className="text-green-500 bg-gray-200 px-2 py-1 rounded-full mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Active</span>
                                     ) : (
-                                        <span onClick={() => changeStatus(product.id, product.homePageEnabled, 'homePageEnabled')} className="text-red-500 bg-gray-200 px-2 py-1 rounded mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Inactive </span>
+                                        <span onClick={() => changeStatus(product.id, product.homePageEnabled, 'homePageEnabled')} className="text-red-500 bg-gray-200 px-2 py-1 rounded-full mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Inactive </span>
                                     )}
 
                                 </td>
                                 <td className="p-2 border">
                                     {product.categories.map((sub) => (
-                                        <span onClick={() => viewCategory(product.id, sub.id)} key={sub.id} className="bg-gray-200 px-2 py-1 rounded mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">
+                                        <span onClick={() => viewCategory(product.id, sub.id)} key={sub.id} className="inline-block bg-gray-200 px-3 py-1 rounded-full text-sm font-medium text-gray-700 m-1 hover:bg-[rgb(255,198,48)] cursor-pointer">
                                             {sub.name}
                                         </span>
                                     ))}
                                     {product.isActive ? (
-                                        <span className="bg-gray-200 px-2 py-1 rounded mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                            <button onClick={() => openAlert('CATEGORY', product.id)}>Add </button>
+                                        <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
+                                            <Button onClick={() => openAlert('CATEGORY', product.id)}>Add </Button>
                                         </span>
                                     ) : ''}
                                 </td>
                                 <td className="p-2 border">
                                     {product.isActive ? (
-                                        <span onClick={() => changeStatus(product.id, product.isActive, 'isActive')} className="text-green-500 bg-gray-200 px-2 py-1 rounded mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Active</span>
+                                        <span onClick={() => changeStatus(product.id, product.isActive, 'isActive')} className="text-green-500 bg-gray-200 px-2 py-1 rounded-full mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Active</span>
                                     ) : (
-                                        <span onClick={() => changeStatus(product.id, product.isActive, 'isActive')} className="text-red-500 bg-gray-200 px-2 py-1 rounded mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Inactive </span>
+                                        <span onClick={() => changeStatus(product.id, product.isActive, 'isActive')} className="text-red-500 bg-gray-200 px-2 py-1 rounded-full mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Inactive </span>
                                     )}
                                 </td>
                             </tr>
@@ -322,8 +294,8 @@ const AdminPage = () => {
                         <tr>
                             <td className="p-2 border">{products.length + 1}</td>
                             <td className="p-2 border">
-                                <span className="bg-gray-200 px-2 py-1 rounded mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                    <button onClick={() => openAlert('PRODUCT')}>Add </button>
+                                <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
+                                    <Button onClick={() => openAlert('PRODUCT')}>Add </Button>
                                 </span>
                             </td>
                             <td></td>
@@ -341,9 +313,9 @@ const AdminPage = () => {
                     <div className="flex">
                         <span> <h2 className="text-2xl font-semibold mb-4">Category : {selectedCategory.name}  </h2>  </span>
                         <span className='text-align right-0'> {selectedCategory.isActive ? (
-                            <span onClick={() => changeCategoryStatus(selectedCategory.id, selectedCategory.isActive, 'isActive')} className="text-green-500 bg-gray-200 px-2 py-1 rounded mr-1  hover:bg-[rgb(255,198,48)] cursor-pointer">Active</span>
+                            <span onClick={() => changeCategoryStatus(selectedCategory.id, selectedCategory.isActive, 'isActive')} className="text-green-500 bg-gray-200 px-2 py-1 rounded-full mr-1  hover:bg-[rgb(255,198,48)] cursor-pointer">Active</span>
                         ) : (
-                            <span onClick={() => changeCategoryStatus(selectedCategory.id, selectedCategory.isActive, 'isActive')} className="text-red-500 bg-gray-200 px-2 py-1 rounded mr-1  hover:bg-[rgb(255,198,48)] cursor-pointer">Inactive </span>
+                            <span onClick={() => changeCategoryStatus(selectedCategory.id, selectedCategory.isActive, 'isActive')} className="text-red-500 bg-gray-200 px-2 py-1 rounded-full mr-1  hover:bg-[rgb(255,198,48)] cursor-pointer">Inactive </span>
                         )}
                         </span>
                     </div>
@@ -367,33 +339,40 @@ const AdminPage = () => {
                                         >{index + 1}</div>
                                     </td>
                                     <td className="p-2 border">{subcategory.name}</td>
-                                    <td className="p-2 border">
+                                    <td className="p-2 border ">
+
                                         {subcategory.serviceTypes.map((st) => (
-                                            <span className="bg-gray-200 px-2 py-1 rounded mr-1">
+                                            <span key={st.serviceType} className="inline-block bg-gray-200 px-3 py-1 rounded-full text-sm font-medium text-gray-700 m-1">
                                                 {st.serviceType}
                                             </span>
                                         ))}
 
-                                        <span className="bg-gray-200 px-2 py-1 rounded mr-1 text-green-500 hover:bg-[rgb(255,198,48)]">
-                                            <button onClick={() => { openAlert('SERVICE_TYPE'); setSubCategoryId(subcategory.id); }} >Add </button>
+                                        <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)]">
+                                            <Button onClick={() => { openAlert('SERVICE_TYPE'); setSubCategoryId(subcategory.id); }} >Add </Button>
                                         </span>
+
+
 
                                     </td>
-                                    <td className="p-2 border">
+                                    <td className="p-2 border ">
+
                                         {subcategory.brands.map((brand) => (
-                                            <span className="bg-gray-200 px-2 py-1 rounded mr-1">
+                                            <span key={brand.brandName} className="inline-block bg-gray-200 px-3 py-1 rounded-full text-sm font-medium text-gray-700 m-1">
                                                 {brand.brandName}
                                             </span>
+
                                         ))}
 
-                                        <span className="bg-gray-200 px-2 py-1 rounded mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                            <button onClick={() => openAlert('BRAND')}>Add </button>
+                                        <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
+                                            <Button onClick={() => { openAlert('BRAND');setSubCategoryId(subcategory.id);}}>Add </Button>
                                         </span>
+
+
 
                                     </td>
                                     <td className="p-2 border">
                                         <img
-                                            src={subcategory.imageUrl}
+                                            src={uploadedImages[subcategory.id] || subcategory.imageUrl}
                                             alt={subcategory.name}
                                             className="w-20 h-20 object-cover rounded-lg mb-2"
                                         />
@@ -404,25 +383,30 @@ const AdminPage = () => {
                                         <input
                                                 type="file"
                                                 className="hidden"
-                                                multiple
-                                                onChange={handleFileChange}
+                                                multiple={false}
+                                                onChange={(event) => handleFileChange(event, subcategory.id)}
                                             />
                                         </label>
 
                                     </td>
                                     <td className="p-2 border">{subcategory.isActive ? (
-                                        <span className="bg-gray-200 px-2 py-1 rounded mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                            <button onClick={() => toggleSubCategory()}>Active</button></span>
+                                        <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
+                                            <Button onClick={() => toggleSubCategory(subcategory.id,subcategory.isActive)}>Active</Button></span>
                                     ) : (
-                                        <span className="bg-gray-200 px-2 py-1 rounded mr-1 text-red-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                            <button onClick={() => toggleSubCategory()}>Inactive</button> </span>
-                                    )}</td>
+                                        <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-red-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
+                                            <Button onClick={() => toggleSubCategory(subcategory.id,subcategory.isActive)}>Inactive</Button> </span>
+                                    )}
+                                        {uploadedImages[subcategory.id] && (<span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
+                                            <Button onClick={() => updateImage(subcategory.id)}>Update Image</Button></span>
+                                        )}
+                                    </td>
                                 </tr>
                             ))}
                             <tr>
                                 <td className="p-2 border">{selectedCategory.subcategories.length + 1}</td>
                                 <td className="p-2 border"><input
                                     type="text"
+                                    value = {newSubCategory}
                                     onChange={(e) => setNewSubCategory(e.target.value)}
                                     className="border p-2 w-full mb-4"
                                     placeholder="Type Sub category name."
@@ -430,19 +414,10 @@ const AdminPage = () => {
                                 <td className="p-2 border"></td>
                                 <td className="p-2 border"></td>
                                 <td className="p-2 border">
-                                    <label className="w-full flex items-center justify-center p-2  text-green-500 rounded-lg cursor-pointer hover:bg-[rgb(255,198,48)] transition-all shadow-md">
-                                        <FiUpload className="mr-2 text-lg" />
-                                         Dispaly Image
-                                        <input
-                                            type="file"
-                                            className="hidden"
-                                            multiple
-                                            onChange={handleFileChange}
-                                        />
-                                    </label>
+                                   
                                 </td>
-                                <td className="p-2 border"> <span className="bg-gray-200 px-2 py-1 rounded mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                    <button onClick={() => handleNewSubcategoryClick()}>Add </button>
+                                <td className="p-2 border"> <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
+                                    <Button onClick={() => handleNewSubcategoryClick()}>Add </Button>
                                 </span></td>
                             </tr>
                         </tbody>
