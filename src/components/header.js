@@ -60,6 +60,11 @@ const Header = () => {
                 Contact
               </Link>
             </li>
+            <li>
+              <Link to="/admin" className="">
+                Admin
+              </Link>
+            </li>
           </ul>
 
           {/* Login Button */}
@@ -145,6 +150,12 @@ const Header = () => {
                 <li>
                   <Link to="/contact" className="px-1 py-1 text-s  rounded-lg  hover:bg-[rgb(255,198,48)] transition-all cursor-pointer">
                     Contact
+</Link>
+                </li>
+
+                <li>
+                  <Link to="/admin" className="px-1 py-1 text-s  rounded-lg  hover:bg-[rgb(255,198,48)] transition-all cursor-pointer">
+                    Admin
 </Link>
                 </li>
               </ul>
