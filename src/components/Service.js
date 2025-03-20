@@ -12,7 +12,7 @@ const Service = () => {
     const allCategories2 = categories;
 
     useEffect(() => {
-      axios.get("/api/product") // 🔹 Replace with your actual API endpoint
+      axios.get("https://node-be-production-b65b.up.railway.app/api/product") // 🔹 Replace with your actual API endpoint
           .then(response => {
               // Ensure response.data is in the expected format
               console.log('fetch')

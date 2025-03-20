@@ -20,7 +20,7 @@ const AdminProduct = () => {
 
     useEffect(() => {
         setLoading(true); // Start loading before API call
-        axios.get("/api/product/all") // 🔹 Replace with your actual API endpoint
+        axios.get("https://node-be-production-b65b.up.railway.app/api/product/all") // 🔹 Replace with your actual API endpoint
             .then(response => {
                 // Ensure response.data is in the expected format
                 console.log('fetch')
@@ -57,7 +57,7 @@ const AdminProduct = () => {
 
     const addNewCategory = async (categoryName) => {
 
-        await apiPost("/api/product/saveOrUpdateCategory", { name: categoryName, productId: selectedProductId });
+        await apiPost("https://node-be-production-b65b.up.railway.app/api/product/saveOrUpdateCategory", { name: categoryName, productId: selectedProductId });
         setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
 
     };
@@ -70,7 +70,7 @@ const AdminProduct = () => {
     };
 
     const addNewProduct = async (value) => {
-        await apiPost("/api/product/saveOrUpdateProduct", { name: value }); // Pass the productName
+        await apiPost("https://node-be-production-b65b.up.railway.app/api/product/saveOrUpdateProduct", { name: value }); // Pass the productName
 
         setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
 
@@ -121,13 +121,13 @@ const AdminProduct = () => {
     };
 
     const changeStatus = async (productId, status, action) => {
-        await apiPost("/api/product/saveOrUpdateProduct", { id: productId, [action]: !status }); // Pass the productName
+        await apiPost("https://node-be-production-b65b.up.railway.app/api/product/saveOrUpdateProduct", { id: productId, [action]: !status }); // Pass the productName
 
         setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
 
     }
     const changeCategoryStatus = async (categoryId, status, action) => {
-        await apiPost("/api/product/saveOrUpdateCategory", { id: categoryId, [action]: !status }); // Pass the productName
+        await apiPost("https://node-be-production-b65b.up.railway.app/api/product/saveOrUpdateCategory", { id: categoryId, [action]: !status }); // Pass the productName
 
         setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
 
@@ -164,20 +164,20 @@ const AdminProduct = () => {
             return;
 
         }
-        await apiPost("/api/product/saveOrUpdateSubCategory", { categoryId: selectedCategory.id, name: newSubCategory }); // Pass the productName
+        await apiPost("https://node-be-production-b65b.up.railway.app/api/product/saveOrUpdateSubCategory", { categoryId: selectedCategory.id, name: newSubCategory }); // Pass the productName
         setNewSubCategory('');
         setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
     }
 
     const addNewServiceType = async (value) => {
-        await apiPost("/api/product/saveOrUpdateServicType", { serviceType: value, isActive: true, subCategoryId: subCategoryId }); // Pass the productName
+        await apiPost("https://node-be-production-b65b.up.railway.app/api/product/saveOrUpdateServicType", { serviceType: value, isActive: true, subCategoryId: subCategoryId }); // Pass the productName
 
         setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
 
     };
 
     const addNewBrand = async (value) => {
-        await apiPost("/api/product/saveOrUpdateBrand", { brandName: value, isActive: true, subCategoryId: subCategoryId }); // Pass the productName
+        await apiPost("https://node-be-production-b65b.up.railway.app/api/product/saveOrUpdateBrand", { brandName: value, isActive: true, subCategoryId: subCategoryId }); // Pass the productName
 
         setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
 
@@ -192,14 +192,14 @@ const AdminProduct = () => {
             return alert("Add Some Service type & display image , before activating.")
         }
 
-        await apiPost("/api/product/saveOrUpdateSubCategory", { id: subcategoryId, isActive: !isActive }); // Pass the productName
+        await apiPost("https://node-be-production-b65b.up.railway.app/api/product/saveOrUpdateSubCategory", { id: subcategoryId, isActive: !isActive }); // Pass the productName
 
         setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
     }
 
     const updateImage = async (subcategoryId) => {
         console.log(uploadedImages[subcategoryId])
-        await apiPost("/api/product/saveOrUpdateSubCategory", { id: subcategoryId, imageUrl: uploadedImages[subcategoryId] }); // Pass the productName
+        await apiPost("https://node-be-production-b65b.up.railway.app/api/product/saveOrUpdateSubCategory", { id: subcategoryId, imageUrl: uploadedImages[subcategoryId] }); // Pass the productName
 
         setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
     }
