@@ -11,8 +11,10 @@ const Service = () => {
     const allCategories = categories;
     const allCategories2 = categories;
 
+    console.log("API BASE URL:", process.env.REACT_APP_BE_APP_API_BASE_URL);
+
     useEffect(() => {
-      axios.get("https://node-be-production-b65b.up.railway.app/api/product") // 🔹 Replace with your actual API endpoint
+      axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product`) // 🔹 Replace with your actual API endpoint
           .then(response => {
               // Ensure response.data is in the expected format
               console.log('fetch')
