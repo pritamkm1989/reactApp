@@ -3,7 +3,7 @@ export const uploadImage = async (file: File): Promise<string> => {
     formData.append('image', file);
   
     try {
-      const response = await fetch('/api/upload/', {
+      const response = await fetch(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/upload/`, {
         method: 'POST',
         headers: {
           accept: 'application/json',
