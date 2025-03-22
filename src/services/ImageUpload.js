@@ -3,7 +3,7 @@ export const uploadImage = async (file: File): Promise<string> => {
     formData.append('image', file);
   
     try {
-      const response = await fetch('/api/upload/', {
+      const response = await fetch('https://node-be-production-b65b.up.railway.app/api/upload/', {
         method: 'POST',
         headers: {
           accept: 'application/json',
