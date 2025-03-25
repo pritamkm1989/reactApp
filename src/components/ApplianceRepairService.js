@@ -92,7 +92,7 @@ const ApplianceRepairService = ({ items, title }) => {
     addToCart(cartForm);
 
     console.log(origin);
-    if('checkout' === origin){
+    if ('checkout' === origin) {
       navigate("/cart");
     }
 
@@ -100,39 +100,39 @@ const ApplianceRepairService = ({ items, title }) => {
 
 
   const serviceTypeIds = items
-  .flatMap((item) => item.subcategories) // Flatten subcategories
-  .flatMap((sub) => sub.serviceTypes) // Flatten serviceTypes
-  .map((serviceType) => serviceType.id); // Extract serviceTypeId
+    .flatMap((item) => item.subcategories) // Flatten subcategories
+    .flatMap((sub) => sub.serviceTypes) // Flatten serviceTypes
+    .map((serviceType) => serviceType.id); // Extract serviceTypeId
 
- //console.log(serviceTypeIds);
+  //console.log(serviceTypeIds);
 
- useEffect(() => {
-  if (serviceTypeIds.length === 0) return; 
-  setLoading(true); // Start loading before API call
-  const serviceTypeQuery = serviceTypeIds.join(",");
-  axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/details?serviceIds=${serviceTypeQuery}`) // 🔹 Replace with your actual API endpoint
+  useEffect(() => {
+    if (serviceTypeIds.length === 0) return;
+    setLoading(true); // Start loading before API call
+    const serviceTypeQuery = serviceTypeIds.join(",");
+    axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/details?serviceIds=${serviceTypeQuery}`) // 🔹 Replace with your actual API endpoint
       .then(response => {
-          // Ensure response.data is in the expected format
-          console.log('service/details')
-          console.log(response.data);
-          setServiceDetails(response.data)
+        // Ensure response.data is in the expected format
+        console.log('service/details')
+        console.log(response.data);
+        setServiceDetails(response.data)
       })
       .catch(error => console.error("Error fetching service details:", error))
       .finally(() => setLoading(false)); // Stop loading after API call
-}, [selectedCategory]);
+  }, [selectedCategory]);
 
   const fetchServiceDetils = (serviceId) => {
-    console.log('fetchServiceDetils-'+serviceId);
+    console.log('fetchServiceDetils-' + serviceId);
     setLoading(true); // Start loading before API call
     axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/details?serviceIds=${serviceId}`) // 🔹 Replace with your actual API endpoint
-        .then(response => {
-            // Ensure response.data is in the expected format
-            console.log('service/details')
-            console.log(response.data);
-            setServiceDetail(response?.data[0])
-        })
-        .catch(error => console.error("Error fetching service details:", error))
-        .finally(() => setLoading(false)); // Stop loading after API call
+      .then(response => {
+        // Ensure response.data is in the expected format
+        console.log('service/details')
+        console.log(response.data);
+        setServiceDetail(response?.data[0])
+      })
+      .catch(error => console.error("Error fetching service details:", error))
+      .finally(() => setLoading(false)); // Stop loading after API call
   }
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -150,11 +150,11 @@ const ApplianceRepairService = ({ items, title }) => {
 
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
-       { loading && (
-                <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
-                    <div className="w-16 h-16 border-4 border-[rgb(255,198,48)] border-t-transparent rounded-full animate-spin"></div>
-                </div>
-            )}
+      { loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="w-16 h-16 border-4 border-[rgb(255,198,48)] border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
       <h1 className="text-center text-2xl font-semibold mb-4">{title}</h1>
 
       {/* Main Categories */}
@@ -312,7 +312,7 @@ const ApplianceRepairService = ({ items, title }) => {
       {/* Text Area & Upload Section */}
       {selectedType && (
         <div className="mt-4 p-6 bg-white border rounded-lg shadow-lg transition-all">
-         
+
           {serviceDetail && (<h3 className="text-xl font-medium mb-4">
             {serviceDetail.name}
             {selectedBrand && ` - ${selectedBrand}`}
@@ -363,7 +363,8 @@ const ApplianceRepairService = ({ items, title }) => {
         <hr />
       </div>
 
-      <div className="mt-4 p-6 bg-white border rounded-lg shadow-lg transition-all">
+      {/* Visible only on desktop (hidden on small screens) */}
+      <div className="hidden md:block mt-4 p-6 bg-white border rounded-lg shadow-lg transition-all">
         <div className="flex flex-col gap-6 md:flex-row">
           {/* Constant Section (Shows Selected Category & Subcategory Details) */}
           <div className="w-full md:w-1/3 bg-gray-100 p-4 rounded-lg shadow-md flex items-center gap-4">
@@ -377,7 +378,6 @@ const ApplianceRepairService = ({ items, title }) => {
                   <p className="text-gray-500">Price: {serviceDetail.rate}</p>
                   <p className="text-yellow-500 font-semibold">Review: {serviceDetail.rattings} ⭐</p>
                   <ul className="list-disc pl-5 text-gray-700 mt-2">
-
                     {serviceDetail?.aboutService?.length > 0 ? (
                       serviceDetail.aboutService.slice(0, 2).map((service, idx) => (
                         <li key={idx}>{service}</li>
@@ -392,9 +392,8 @@ const ApplianceRepairService = ({ items, title }) => {
                     className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
                   >
                     View More
-                  </button>
+            </button>
                 </div>
-
               )}
             </div>
 
@@ -408,95 +407,215 @@ const ApplianceRepairService = ({ items, title }) => {
             )}
           </div>
 
-          {/* Scrollable Section (Vertical with Fixed Width Cards) */}
-          <div className="w-full md:w-2/3 h-[300px] overflow-y-auto scrollbar-hide p-2 bg-gray-50 rounded-lg shadow-md">
-            <div className="flex flex-col space-y-4">
-              {/* Dynamic Items */}
-              {serviceDetails && (serviceDetails.map((item, index) => (
-                <div
-                  key={index}
-                  className="w-full md:w-[95%] mx-auto bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex items-center gap-4"
-                >
-                  {/* Left Section - Text Content */}
-                  <div className="flex-1 ">
-                    <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
-                    <p className="text-gray-500">Price: {item.rate}</p>
-                    <p className="text-yellow-500 font-semibold">Review: {item.rattings} ⭐</p>
-                    <ul className="list-disc pl-5 text-gray-700 mt-2">
-
-                      {item?.aboutService?.length > 0 ? (
-                        item.aboutService.slice(0, 2).map((service, idx) => (
-                          <li key={idx}>{service}</li>
-                        ))
-                      ) : (
-                        <p>No services available</p>
-                      )}
-                    </ul>
-                    {/* View More Button */}
-                    <button
-                      onClick={() => openModal(item)}
-                      className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
+          {/* Scrollable Section (Horizontal on Desktop, Vertical on Mobile) */}
+          <div className="w-full md:w-3/4 p-4 bg-gray-50 rounded-lg shadow-md">
+            {/* Scrollable Section */}
+            <div className="overflow-x-auto overflow-y-hidden">
+              <div className="flex flex-row gap-4 whitespace-nowrap">
+                {serviceDetails &&
+                  serviceDetails.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex-none w-[250px] bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex flex-col items-center gap-4"
                     >
-                      View More
-                  </button>
-                  </div>
+                      {/* Content */}
+                      <div className="flex-1 w-full">
+                        <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
+                        <p className="text-gray-500">Price: {item.rate}</p>
+                        <p className="text-yellow-500 font-semibold">Review: {item.rattings} ⭐</p>
+                        <ul className="list-disc pl-5 text-gray-700 mt-2">
+                          {item?.aboutService?.length > 0 ? (
+                            item.aboutService.slice(0, 2).map((service, idx) => (
+                              <li key={idx}>{service}</li>
+                            ))
+                          ) : (
+                            <p>No services available</p>
+                          )}
+                        </ul>
+                        {/* View More Button */}
+                        <button
+                          onClick={() => openModal(item)}
+                          className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
+                        >
+                          View More
+              </button>
+                      </div>
 
-                  {/* Right Section - Image */}
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="w-24 h-24 object-cover rounded-md"
-                  />
+                      {/* Image */}
+                      {item.imageUrl ? (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name || "Service Image"}
+                          className="w-24 h-24 object-cover rounded-md"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "https://via.placeholder.com/100"; // Fallback placeholder
+                          }}
+                        />
+                      ) : (
+                        <img
+                          src="https://via.placeholder.com/100"
+                          alt="Placeholder"
+                          className="w-24 h-24 object-cover rounded-md"
+                        />
+                      )}
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+
+
+
+
+
+
+
+
+
+      {/* Visible only on mobile (hidden on md and larger screens) */}
+      <div className="block md:hidden mt-4 p-6 bg-white border rounded-lg shadow-lg transition-all">
+        <div className="flex flex-col gap-6 md:flex-row">
+          {/* Constant Section (Shows Selected Category & Subcategory Details) */}
+          <div className="w-full md:w-1/3 bg-gray-100 p-4 rounded-lg shadow-md flex items-center gap-4">
+            {/* Left Section - Text Content */}
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold">{selectedCategoryName}</h2>
+
+              {serviceDetail && (
+                <div className="mt-2">
+                  <p className="font-medium">{serviceDetail.name}</p>
+                  <p className="text-gray-500">Price: {serviceDetail.rate}</p>
+                  <p className="text-yellow-500 font-semibold">Review: {serviceDetail.rattings} ⭐</p>
+                  <ul className="list-disc pl-5 text-gray-700 mt-2">
+                    {serviceDetail?.aboutService?.length > 0 ? (
+                      serviceDetail.aboutService.slice(0, 2).map((service, idx) => (
+                        <li key={idx}>{service}</li>
+                      ))
+                    ) : (
+                      <p>No services available</p>
+                    )}
+                  </ul>
+                  {/* View More Button */}
+                  <button
+                    onClick={() => openModal(serviceDetail)}
+                    className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
+                  >
+                    View More
+            </button>
                 </div>
-              )))}
+              )}
+            </div>
+
+            {/* Right Section - Image */}
+            {serviceDetail && (
+              <img
+                src={serviceDetail.imageUrl}
+                alt={serviceDetail.name}
+                className="w-24 h-24 object-cover rounded-md"
+              />
+            )}
+          </div>
+
+
+
+          {/* Scrollable Section (Horizontal on Desktop, Vertical on Mobile) */}
+          <div className="w-full md:w-2/3 h-[300px] p-2 bg-gray-50 rounded-lg shadow-md overflow-y-auto md:overflow-x-auto">
+            <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
+              {/* Dynamic Items */}
+              {serviceDetails &&
+                serviceDetails.map((item, index) => (
+                  <div
+                    key={index}
+                    className="w-full md:w-auto bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex items-center gap-4"
+                  >
+                    {/* Left Section - Text Content */}
+                    <div className="flex-1">
+                      <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
+                      <p className="text-gray-500">Price: {item.rate}</p>
+                      <p className="text-yellow-500 font-semibold">Review: {item.rattings} ⭐</p>
+                      <ul className="list-disc pl-5 text-gray-700 mt-2">
+                        {item?.aboutService?.length > 0 ? (
+                          item.aboutService.slice(0, 2).map((service, idx) => (
+                            <li key={idx}>{service}</li>
+                          ))
+                        ) : (
+                          <p>No services available</p>
+                        )}
+                      </ul>
+                      {/* View More Button */}
+                      <button
+                        onClick={() => openModal(item)}
+                        className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
+                      >
+                        View More
+                </button>
+                    </div>
+
+                    {/* Right Section - Image */}
+                    {item.imageUrl && (
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="w-24 h-24 object-cover rounded-md"
+                      />
+                    )}
+                  </div>
+                ))}
             </div>
           </div>
         </div>
       </div>
 
       {/* Modal Popup */}
-      {isModalOpen && selectedItem && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="flex justify-between items-center border-b pb-2">
-              <h2 className="text-2xl font-bold text-gray-800">{selectedItem.name}</h2>
-              <button onClick={closeModal} className="text-gray-500 hover:text-gray-700 text-xl">
-                ✕
+      {
+        isModalOpen && selectedItem && (
+          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className="flex justify-between items-center border-b pb-2">
+                <h2 className="text-2xl font-bold text-gray-800">{selectedItem.name}</h2>
+                <button onClick={closeModal} className="text-gray-500 hover:text-gray-700 text-xl">
+                  ✕
               </button>
-            </div>
-
-            {/* Modal Content - Image and Details Side by Side */}
-            <div className="flex flex-col md:flex-row items-center gap-6 mt-4">
-              {/* Image Section */}
-              <img
-                src={selectedItem.imageUrl}
-                alt={selectedItem.name}
-                className="w-full md:w-1/2 h-48 object-cover rounded-lg"
-              />
-
-              {/* Details Section */}
-              <div className="flex-1">
-                <p className="text-gray-600 mt-2">Price: {selectedItem.rate}</p>
-                <p className="text-yellow-500 font-semibold">Review: {selectedItem.ratting} ⭐</p>
-                <ul className="list-disc pl-5 text-gray-700 mt-2">
-                  {Array.isArray(selectedItem.aboutService) && selectedItem.aboutService.map((service, idx) => (
-                    <li key={idx}>{service}</li>
-                  ))}
-                </ul>
               </div>
-            </div>
 
-            {/* Close Button */}
-            <button
-              onClick={closeModal}
-              className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition w-full"
-            >
-              Close
+              {/* Modal Content - Image and Details Side by Side */}
+              <div className="flex flex-col md:flex-row items-center gap-6 mt-4">
+                {/* Image Section */}
+                <img
+                  src={selectedItem.imageUrl}
+                  alt={selectedItem.name}
+                  className="w-full md:w-1/2 h-48 object-cover rounded-lg"
+                />
+
+                {/* Details Section */}
+                <div className="flex-1">
+                  <p className="text-gray-600 mt-2">Price: {selectedItem.rate}</p>
+                  <p className="text-yellow-500 font-semibold">Review: {selectedItem.ratting} ⭐</p>
+                  <ul className="list-disc pl-5 text-gray-700 mt-2">
+                    {Array.isArray(selectedItem.aboutService) && selectedItem.aboutService.map((service, idx) => (
+                      <li key={idx}>{service}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={closeModal}
+                className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition w-full"
+              >
+                Close
             </button>
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
 
       <div className="mt-6 flex gap-4">
@@ -512,12 +631,12 @@ const ApplianceRepairService = ({ items, title }) => {
           className="flex-1 bg-[rgb(255,198,48)] text-white py-2 rounded-lg transition-all shadow-md"
         >
 
-         
-            Check out
-           
+
+          Check out
+
         </button>
       </div>
-    </div>
+    </div >
   );
 };
 
