@@ -3,7 +3,7 @@ import { FiUpload } from "react-icons/fi";
 import CartForm from './request/CartForm'
 import { CityContext } from '../CityContext'
 import { useNavigate } from "react-router-dom";
-
+import axios from "axios";
 import { CartContext } from "../CartContext";
 
 const ApplianceRepairService = ({ items, title }) => {
@@ -16,6 +16,9 @@ const ApplianceRepairService = ({ items, title }) => {
   const [issueDescription, setIssueDescription] = useState("");
   const [city, setCity] = useState("");
   const [errors, setErrors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [serviceDetails, setServiceDetails] = useState("");
+  const [serviceDetail, setServiceDetail] = useState("");
 
   const navigate = useNavigate();
 
@@ -28,12 +31,14 @@ const ApplianceRepairService = ({ items, title }) => {
     setSelectedSubcategory(null);
     setSelectedType(null);
     setSelectedBrand(null); // Reset brand on category change
+    setServiceDetail(null)
   };
 
   const handleSubcategoryClick = (subcategory) => {
     setSelectedSubcategory(subcategory);
     setSelectedType(null);
-    setSelectedBrand(null); // Reset brand on subcategory change
+    setSelectedBrand(null);
+    setServiceDetail(null) // Reset brand on subcategory change
   };
 
   const handleFileChange = (event) => {
@@ -94,9 +99,41 @@ const ApplianceRepairService = ({ items, title }) => {
   };
 
 
-  const dataItems = items.flatMap((item) => item.subcategories);
-  console.log(dataItems);
+  const serviceTypeIds = items
+  .flatMap((item) => item.subcategories) // Flatten subcategories
+  .flatMap((sub) => sub.serviceTypes) // Flatten serviceTypes
+  .map((serviceType) => serviceType.id); // Extract serviceTypeId
 
+ //console.log(serviceTypeIds);
+
+ useEffect(() => {
+  if (serviceTypeIds.length === 0) return; 
+  setLoading(true); // Start loading before API call
+  const serviceTypeQuery = serviceTypeIds.join(",");
+  axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/details?serviceIds=${serviceTypeQuery}`) // 🔹 Replace with your actual API endpoint
+      .then(response => {
+          // Ensure response.data is in the expected format
+          console.log('service/details')
+          console.log(response.data);
+          setServiceDetails(response.data)
+      })
+      .catch(error => console.error("Error fetching service details:", error))
+      .finally(() => setLoading(false)); // Stop loading after API call
+}, [selectedCategory]);
+
+  const fetchServiceDetils = (serviceId) => {
+    console.log('fetchServiceDetils-'+serviceId);
+    setLoading(true); // Start loading before API call
+    axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/details?serviceIds=${serviceId}`) // 🔹 Replace with your actual API endpoint
+        .then(response => {
+            // Ensure response.data is in the expected format
+            console.log('service/details')
+            console.log(response.data);
+            setServiceDetail(response?.data[0])
+        })
+        .catch(error => console.error("Error fetching service details:", error))
+        .finally(() => setLoading(false)); // Stop loading after API call
+  }
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -113,6 +150,11 @@ const ApplianceRepairService = ({ items, title }) => {
 
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
+       { loading && (
+                <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+                    <div className="w-16 h-16 border-4 border-[rgb(255,198,48)] border-t-transparent rounded-full animate-spin"></div>
+                </div>
+            )}
       <h1 className="text-center text-2xl font-semibold mb-4">{title}</h1>
 
       {/* Main Categories */}
@@ -215,14 +257,14 @@ const ApplianceRepairService = ({ items, title }) => {
              </label>
               <select
                 className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none"
-                onChange={(e) => { setSelectedType(e.target.value); setErrors(errors.filter(error => error.field !== 'type')); }}
+                onChange={(e) => { setSelectedType(e.target.value); setErrors(errors.filter(error => error.field !== 'type')); fetchServiceDetils(e.target.value) }}
                 value={selectedType || ""}
               >
                 <option value="" disabled>
                   Select an option
                </option>
                 {selectedSubcategory.serviceTypes.map((type, index) => (
-                  <option key={index} value={type.serviceType}>
+                  <option key={index} value={type.id}>
                     {type.serviceType}
                   </option>
                 ))}
@@ -270,10 +312,12 @@ const ApplianceRepairService = ({ items, title }) => {
       {/* Text Area & Upload Section */}
       {selectedType && (
         <div className="mt-4 p-6 bg-white border rounded-lg shadow-lg transition-all">
-          <h3 className="text-xl font-medium mb-4">
-            {selectedType} for {selectedSubcategory.name}
+         
+          {serviceDetail && (<h3 className="text-xl font-medium mb-4">
+            {serviceDetail.name}
             {selectedBrand && ` - ${selectedBrand}`}
           </h3>
+          )}
 
           {/* Grid Layout for Side-by-Side Arrangement */}
           <div className="grid grid-cols-2 gap-6">
@@ -327,15 +371,24 @@ const ApplianceRepairService = ({ items, title }) => {
             <div className="flex-1">
               <h2 className="text-xl font-semibold">{selectedCategoryName}</h2>
 
-              {selectedSubcategory && (
+              {serviceDetail && (
                 <div className="mt-2">
-                  <p className="font-medium">{selectedSubcategory.name}</p>
-                  <p className="text-gray-700">Rs 500 | Time: 3h</p>
-                  <p className="text-gray-700">Rs 500 | Time: 3h</p>
-                  <p className="text-yellow-500 font-semibold">Ratings</p>
+                  <p className="font-medium">{serviceDetail.name}</p>
+                  <p className="text-gray-500">Price: {serviceDetail.rate}</p>
+                  <p className="text-yellow-500 font-semibold">Review: {serviceDetail.rattings} ⭐</p>
+                  <ul className="list-disc pl-5 text-gray-700 mt-2">
+
+                    {serviceDetail?.aboutService?.length > 0 ? (
+                      serviceDetail.aboutService.slice(0, 2).map((service, idx) => (
+                        <li key={idx}>{service}</li>
+                      ))
+                    ) : (
+                      <p>No services available</p>
+                    )}
+                  </ul>
                   {/* View More Button */}
                   <button
-                    onClick={() => openModal(selectedSubcategory)}
+                    onClick={() => openModal(serviceDetail)}
                     className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
                   >
                     View More
@@ -346,33 +399,38 @@ const ApplianceRepairService = ({ items, title }) => {
             </div>
 
             {/* Right Section - Image */}
-            {selectedSubcategory && (
+            {serviceDetail && (
               <img
-                src={selectedSubcategory.imageUrl}
-                alt={selectedSubcategory.name}
+                src={serviceDetail.imageUrl}
+                alt={serviceDetail.name}
                 className="w-24 h-24 object-cover rounded-md"
               />
             )}
           </div>
 
           {/* Scrollable Section (Vertical with Fixed Width Cards) */}
-          <div className="w-full md:w-2/3 h-[400px] overflow-y-auto scrollbar-hide p-2 bg-gray-50 rounded-lg shadow-md">
+          <div className="w-full md:w-2/3 h-[300px] overflow-y-auto scrollbar-hide p-2 bg-gray-50 rounded-lg shadow-md">
             <div className="flex flex-col space-y-4">
               {/* Dynamic Items */}
-              {dataItems.map((item, index) => (
+              {serviceDetails && (serviceDetails.map((item, index) => (
                 <div
                   key={index}
                   className="w-full md:w-[95%] mx-auto bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex items-center gap-4"
                 >
                   {/* Left Section - Text Content */}
-                  <div className="flex-1">
+                  <div className="flex-1 ">
                     <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
-                    <p className="text-gray-500">Price: {item.id}</p>
-                    <p className="text-yellow-500 font-semibold">Review: {item.isActive} ⭐</p>
+                    <p className="text-gray-500">Price: {item.rate}</p>
+                    <p className="text-yellow-500 font-semibold">Review: {item.rattings} ⭐</p>
                     <ul className="list-disc pl-5 text-gray-700 mt-2">
-                      {item.serviceTypes.slice(0, 3).map((service, idx) => (
-                        <li key={idx}>{service.serviceType}</li>
-                      ))}
+
+                      {item?.aboutService?.length > 0 ? (
+                        item.aboutService.slice(0, 2).map((service, idx) => (
+                          <li key={idx}>{service}</li>
+                        ))
+                      ) : (
+                        <p>No services available</p>
+                      )}
                     </ul>
                     {/* View More Button */}
                     <button
@@ -390,7 +448,7 @@ const ApplianceRepairService = ({ items, title }) => {
                     className="w-24 h-24 object-cover rounded-md"
                   />
                 </div>
-              ))}
+              )))}
             </div>
           </div>
         </div>
@@ -419,11 +477,11 @@ const ApplianceRepairService = ({ items, title }) => {
 
               {/* Details Section */}
               <div className="flex-1">
-                <p className="text-gray-600 mt-2">Price: {selectedItem.id}</p>
-                <p className="text-yellow-500 font-semibold">Review: {selectedItem.isActive} ⭐</p>
+                <p className="text-gray-600 mt-2">Price: {selectedItem.rate}</p>
+                <p className="text-yellow-500 font-semibold">Review: {selectedItem.ratting} ⭐</p>
                 <ul className="list-disc pl-5 text-gray-700 mt-2">
-                  {selectedItem.serviceTypes.map((service, idx) => (
-                    <li key={idx}>{service.serviceType}</li>
+                  {Array.isArray(selectedItem.aboutService) && selectedItem.aboutService.map((service, idx) => (
+                    <li key={idx}>{service}</li>
                   ))}
                 </ul>
               </div>

@@ -35,7 +35,7 @@ const ServicePage = () => {
         <div className="flex md:flex-col gap-4 p-4 bg-gray-200 md:min-h-screen w-full md:w-1/4 overflow-x-auto hide-scrollbar">
 
           {allCategories && allCategories.map((cat) => {
-            if (cat.homePageEnabled) {
+            if (cat.isActive) {
               return (<button
                 key={cat.id}
                 className={`px-4 py-2 text-xl  rounded-lg font-semibold    transition-all
