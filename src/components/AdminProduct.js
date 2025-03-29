@@ -3,6 +3,7 @@ import { FiUpload } from "react-icons/fi";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { uploadImage } from '../services/ImageUpload'
+import AdminServiceDetail from './AdminServiceDetail'
 
 
 const AdminProduct = () => {
@@ -17,6 +18,26 @@ const AdminProduct = () => {
     const [loading, setLoading] = useState(false);
     const [subCategoryId, setSubCategoryId] = useState(null);
     const [uploadedImages, setUploadedImages] = useState({});
+    const [isServiceDtlModalOpen, setisServiceDtlModalOpen] = useState(false);
+    const [serviceDetail, setServiceDetail] = useState(null);
+    const [serviceId, setServiceId] = useState(null);
+
+
+    const openServiceModal = async (id) => {
+        console.log('serviceid ' + id);
+        setServiceId(id);
+        console.log(id);
+        const details = await apiGet(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/${id}/details`)
+        console.log('details' + details)
+        
+        setServiceDetail(details)
+        setisServiceDtlModalOpen(true);
+    };
+
+    const closeModal = () => {
+        setisServiceDtlModalOpen(false);
+        setServiceDetail(null);
+    };
 
     useEffect(() => {
         setLoading(true); // Start loading before API call
@@ -52,6 +73,19 @@ const AdminProduct = () => {
             console.error(`Error in API call: ${url}`, error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const apiGet = async (url) => {
+        setLoading(true);
+        try {
+            const response = await axios.get(url);
+            return response.data; // Return the response data
+        } catch (error) {
+            console.error("Error fetching product:", error);
+            return null; // Optionally return null or a default value if there's an error
+        } finally {
+            setLoading(false); // Stop loading after API call
         }
     };
 
@@ -345,8 +379,8 @@ const AdminProduct = () => {
                                         <td className="p-2 border ">
 
                                             {subcategory.serviceTypes.map((st) => (
-                                                <span key={st.serviceType} className="inline-block bg-gray-200 px-3 py-1 rounded-full text-sm font-medium text-gray-700 m-1">
-                                                    {st.serviceType}
+                                                <span key={st.serviceType} className="inline-block bg-gray-200 px-3 py-1 rounded-full text-sm font-medium text-gray-700 m-1 hover:bg-[rgb(255,198,48)] cursor-pointer">
+                                                    <Button onClick={() => { openServiceModal(st.id) }} >Service details</Button>
                                                 </span>
                                             ))}
 
@@ -354,7 +388,7 @@ const AdminProduct = () => {
                                                 <Button onClick={() => { openAlert('SERVICE_TYPE'); setSubCategoryId(subcategory.id); }} >Add </Button>
                                             </span>
 
-
+                                          
 
                                         </td>
                                         <td className="p-2 border ">
@@ -426,10 +460,20 @@ const AdminProduct = () => {
                             </tbody>
                         </table>
                     </div>
+
+
+
+
                 )
             }
+            {isServiceDtlModalOpen && (
+                <AdminServiceDetail serviceDetail = {serviceDetail} closeModal = {closeModal} serviceId = {serviceId} />
+
+            )}
 
         </diV>
+
+
 
     );
 };

@@ -1,6 +1,8 @@
 import React, { useState, useContext, useEffect } from "react";
 import { FiUpload } from "react-icons/fi";
 import CartForm from './request/CartForm'
+import ServiceList from "./ServiceList";
+import ServiceDetail from "./ServiceDetails";
 import { CityContext } from '../CityContext'
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -69,7 +71,7 @@ const ApplianceRepairService = ({ items, title }) => {
   }, [selectedCity]);
 
   const handleServiceSelection = (origin) => {
-    console.log('')
+    console.log('handleServiceSelection')
     const cartForm = new CartForm(
       selectedCategoryName,
       selectedSubcategory,
@@ -84,6 +86,7 @@ const ApplianceRepairService = ({ items, title }) => {
     console.log(validationErrors);
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
+      alert(validationErrors[0]?.message);
       return;
     }
 
@@ -94,6 +97,12 @@ const ApplianceRepairService = ({ items, title }) => {
     console.log(origin);
     if ('checkout' === origin) {
       navigate("/cart");
+    }else{
+      alert('Added to cart successfully.');
+      setSelectedSubcategory(null);
+      setSelectedType(null);
+      setSelectedBrand(null); // Reset brand on category change
+      setServiceDetail(null)
     }
 
   };
@@ -324,7 +333,7 @@ const ApplianceRepairService = ({ items, title }) => {
             {/* Text Area */}
             <textarea
               className="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none transition-all resize-none"
-              placeholder={getError('issueDescription') || 'Comments'}
+              placeholder={getError('issueDescription') || 'Please provide a detailed description of issue you are facing.'}
               style={{
                 borderColor: hasError('issueDescription') ? 'red' : 'initial',
                 borderWidth: hasError('issueDescription') ? '2px' : '0'
@@ -363,257 +372,15 @@ const ApplianceRepairService = ({ items, title }) => {
         <hr />
       </div>
 
-      {/* Visible only on desktop (hidden on small screens) */}
-      <div className="hidden md:block mt-4 p-6 bg-white border rounded-lg shadow-lg transition-all">
-        <div className="flex flex-col gap-6 md:flex-row">
-          {/* Constant Section (Shows Selected Category & Subcategory Details) */}
-          <div className="w-full md:w-1/3 bg-gray-100 p-4 rounded-lg shadow-md flex items-center gap-4">
-            {/* Left Section - Text Content */}
-            <div className="flex-1">
-              <h2 className="text-xl font-semibold">{selectedCategoryName}</h2>
-
-              {serviceDetail && (
-                <div className="mt-2">
-                  <p className="font-medium">{serviceDetail.name}</p>
-                  <p className="text-gray-500">Price: {serviceDetail.rate}</p>
-                  <p className="text-yellow-500 font-semibold">Review: {serviceDetail.rattings} ⭐</p>
-                  <ul className="list-disc pl-5 text-gray-700 mt-2">
-                    {serviceDetail?.aboutService?.length > 0 ? (
-                      serviceDetail.aboutService.slice(0, 2).map((service, idx) => (
-                        <li key={idx}>{service}</li>
-                      ))
-                    ) : (
-                      <p>No services available</p>
-                    )}
-                  </ul>
-                  {/* View More Button */}
-                  <button
-                    onClick={() => openModal(serviceDetail)}
-                    className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
-                  >
-                    View More
-            </button>
-                </div>
-              )}
-            </div>
-
-            {/* Right Section - Image */}
-            {serviceDetail && (
-              <img
-                src={serviceDetail.imageUrl}
-                alt={serviceDetail.name}
-                className="w-24 h-24 object-cover rounded-md"
-              />
-            )}
-          </div>
-
-          {/* Scrollable Section (Horizontal on Desktop, Vertical on Mobile) */}
-          <div className="w-full md:w-3/4 p-4 bg-gray-50 rounded-lg shadow-md">
-            {/* Scrollable Section */}
-            <div className="overflow-x-auto overflow-y-hidden">
-              <div className="flex flex-row gap-4 whitespace-nowrap">
-                {serviceDetails &&
-                  serviceDetails.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex-none w-[250px] bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex flex-col items-center gap-4"
-                    >
-                      {/* Content */}
-                      <div className="flex-1 w-full">
-                        <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
-                        <p className="text-gray-500">Price: {item.rate}</p>
-                        <p className="text-yellow-500 font-semibold">Review: {item.rattings} ⭐</p>
-                        <ul className="list-disc pl-5 text-gray-700 mt-2">
-                          {item?.aboutService?.length > 0 ? (
-                            item.aboutService.slice(0, 2).map((service, idx) => (
-                              <li key={idx}>{service}</li>
-                            ))
-                          ) : (
-                            <p>No services available</p>
-                          )}
-                        </ul>
-                        {/* View More Button */}
-                        <button
-                          onClick={() => openModal(item)}
-                          className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
-                        >
-                          View More
-              </button>
-                      </div>
-
-                      {/* Image */}
-                      {item.imageUrl ? (
-                        <img
-                          src={item.imageUrl}
-                          alt={item.name || "Service Image"}
-                          className="w-24 h-24 object-cover rounded-md"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = "https://via.placeholder.com/100"; // Fallback placeholder
-                          }}
-                        />
-                      ) : (
-                        <img
-                          src="https://via.placeholder.com/100"
-                          alt="Placeholder"
-                          className="w-24 h-24 object-cover rounded-md"
-                        />
-                      )}
-                    </div>
-                  ))}
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-
-
-
-
-
-
-
-
-
-      {/* Visible only on mobile (hidden on md and larger screens) */}
-      <div className="block md:hidden mt-4 p-6 bg-white border rounded-lg shadow-lg transition-all">
-        <div className="flex flex-col gap-6 md:flex-row">
-          {/* Constant Section (Shows Selected Category & Subcategory Details) */}
-          <div className="w-full md:w-1/3 bg-gray-100 p-4 rounded-lg shadow-md flex items-center gap-4">
-            {/* Left Section - Text Content */}
-            <div className="flex-1">
-              <h2 className="text-xl font-semibold">{selectedCategoryName}</h2>
-
-              {serviceDetail && (
-                <div className="mt-2">
-                  <p className="font-medium">{serviceDetail.name}</p>
-                  <p className="text-gray-500">Price: {serviceDetail.rate}</p>
-                  <p className="text-yellow-500 font-semibold">Review: {serviceDetail.rattings} ⭐</p>
-                  <ul className="list-disc pl-5 text-gray-700 mt-2">
-                    {serviceDetail?.aboutService?.length > 0 ? (
-                      serviceDetail.aboutService.slice(0, 2).map((service, idx) => (
-                        <li key={idx}>{service}</li>
-                      ))
-                    ) : (
-                      <p>No services available</p>
-                    )}
-                  </ul>
-                  {/* View More Button */}
-                  <button
-                    onClick={() => openModal(serviceDetail)}
-                    className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
-                  >
-                    View More
-            </button>
-                </div>
-              )}
-            </div>
-
-            {/* Right Section - Image */}
-            {serviceDetail && (
-              <img
-                src={serviceDetail.imageUrl}
-                alt={serviceDetail.name}
-                className="w-24 h-24 object-cover rounded-md"
-              />
-            )}
-          </div>
-
-
-
-          {/* Scrollable Section (Horizontal on Desktop, Vertical on Mobile) */}
-          <div className="w-full md:w-2/3 h-[300px] p-2 bg-gray-50 rounded-lg shadow-md overflow-y-auto md:overflow-x-auto">
-            <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4">
-              {/* Dynamic Items */}
-              {serviceDetails &&
-                serviceDetails.map((item, index) => (
-                  <div
-                    key={index}
-                    className="w-full md:w-auto bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex items-center gap-4"
-                  >
-                    {/* Left Section - Text Content */}
-                    <div className="flex-1">
-                      <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
-                      <p className="text-gray-500">Price: {item.rate}</p>
-                      <p className="text-yellow-500 font-semibold">Review: {item.rattings} ⭐</p>
-                      <ul className="list-disc pl-5 text-gray-700 mt-2">
-                        {item?.aboutService?.length > 0 ? (
-                          item.aboutService.slice(0, 2).map((service, idx) => (
-                            <li key={idx}>{service}</li>
-                          ))
-                        ) : (
-                          <p>No services available</p>
-                        )}
-                      </ul>
-                      {/* View More Button */}
-                      <button
-                        onClick={() => openModal(item)}
-                        className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
-                      >
-                        View More
-                </button>
-                    </div>
-
-                    {/* Right Section - Image */}
-                    {item.imageUrl && (
-                      <img
-                        src={item.imageUrl}
-                        alt={item.name}
-                        className="w-24 h-24 object-cover rounded-md"
-                      />
-                    )}
-                  </div>
-                ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <ServiceList
+        serviceDetail={serviceDetail}
+        serviceDetails={serviceDetails || []}
+        openModal={openModal}
+      />
       {/* Modal Popup */}
       {
         isModalOpen && selectedItem && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto">
-              {/* Modal Header */}
-              <div className="flex justify-between items-center border-b pb-2">
-                <h2 className="text-2xl font-bold text-gray-800">{selectedItem.name}</h2>
-                <button onClick={closeModal} className="text-gray-500 hover:text-gray-700 text-xl">
-                  ✕
-              </button>
-              </div>
-
-              {/* Modal Content - Image and Details Side by Side */}
-              <div className="flex flex-col md:flex-row items-center gap-6 mt-4">
-                {/* Image Section */}
-                <img
-                  src={selectedItem.imageUrl}
-                  alt={selectedItem.name}
-                  className="w-full md:w-1/2 h-48 object-cover rounded-lg"
-                />
-
-                {/* Details Section */}
-                <div className="flex-1">
-                  <p className="text-gray-600 mt-2">Price: {selectedItem.rate}</p>
-                  <p className="text-yellow-500 font-semibold">Review: {selectedItem.ratting} ⭐</p>
-                  <ul className="list-disc pl-5 text-gray-700 mt-2">
-                    {Array.isArray(selectedItem.aboutService) && selectedItem.aboutService.map((service, idx) => (
-                      <li key={idx}>{service}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Close Button */}
-              <button
-                onClick={closeModal}
-                className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition w-full"
-              >
-                Close
-            </button>
-            </div>
-          </div>
+          <ServiceDetail selectedItem={selectedItem}   closeModal={closeModal} />
         )
       }
 
