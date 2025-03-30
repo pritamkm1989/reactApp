@@ -14,7 +14,7 @@ const HomePage = () => {
       <div className="font-sans">
 
 
-        <section className="flex justify-center items-center gap-4 p-8 w-full">
+        <section className="flex justify-center items-center gap-4 p-8 w-full bg-white">
           <div className="flex w-full sm:w-1/2 h-full">
             <ImageBox className="flex-1 h-full" />
           </div>
@@ -23,14 +23,19 @@ const HomePage = () => {
           </div>
         </section>
 
-
+ {/* Next Component (add gap between sections) */}
+ <div className="next-component">
+        {/* Your next component content */}
+        <hr />
+      </div>
 
 
 
         {/* Services Section */}
-        <section className="py-16 bg-white text-center">
+        <section className="p-2 text-center">
+          <div className = "">
           <h3 className="text-3xl font-semibold">Our Services</h3>
-          <Service   />
+          <Service   /></div>
         </section>
 
 

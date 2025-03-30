@@ -280,7 +280,7 @@ const AdminProduct = () => {
                 )
             }
 
-            <div className="p-6">
+            <div className="p-6 bg-white">
                 <h2 className="text-2xl font-semibold mb-4">Admin Panel</h2>
 
                 <table className="min-w-full border border-gray-300">
