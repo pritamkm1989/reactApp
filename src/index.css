@@ -131,6 +131,12 @@ header {
   -ms-overflow-style: none;
 }
 
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+
+/* For horizontal scrolling */
+.scrollable-container {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: rgb(255,198,48); /* Firefox */
+  position: relative;
+  outline: none;
 }
+

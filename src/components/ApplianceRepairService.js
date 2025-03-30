@@ -1,9 +1,11 @@
 import React, { useState, useContext, useEffect } from "react";
 import { FiUpload } from "react-icons/fi";
 import CartForm from './request/CartForm'
+import ServiceList from "./ServiceList";
+import ServiceDetail from "./ServiceDetails";
 import { CityContext } from '../CityContext'
 import { useNavigate } from "react-router-dom";
-
+import axios from "axios";
 import { CartContext } from "../CartContext";
 
 const ApplianceRepairService = ({ items, title }) => {
@@ -16,6 +18,9 @@ const ApplianceRepairService = ({ items, title }) => {
   const [issueDescription, setIssueDescription] = useState("");
   const [city, setCity] = useState("");
   const [errors, setErrors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [serviceDetails, setServiceDetails] = useState("");
+  const [serviceDetail, setServiceDetail] = useState("");
 
   const navigate = useNavigate();
 
@@ -28,12 +33,14 @@ const ApplianceRepairService = ({ items, title }) => {
     setSelectedSubcategory(null);
     setSelectedType(null);
     setSelectedBrand(null); // Reset brand on category change
+    setServiceDetail(null)
   };
 
   const handleSubcategoryClick = (subcategory) => {
     setSelectedSubcategory(subcategory);
     setSelectedType(null);
-    setSelectedBrand(null); // Reset brand on subcategory change
+    setSelectedBrand(null);
+    setServiceDetail(null) // Reset brand on subcategory change
   };
 
   const handleFileChange = (event) => {
@@ -64,7 +71,7 @@ const ApplianceRepairService = ({ items, title }) => {
   }, [selectedCity]);
 
   const handleServiceSelection = (origin) => {
-    console.log('')
+    console.log('handleServiceSelection')
     const cartForm = new CartForm(
       selectedCategoryName,
       selectedSubcategory,
@@ -79,6 +86,7 @@ const ApplianceRepairService = ({ items, title }) => {
     console.log(validationErrors);
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
+      alert(validationErrors[0]?.message);
       return;
     }
 
@@ -87,16 +95,54 @@ const ApplianceRepairService = ({ items, title }) => {
     addToCart(cartForm);
 
     console.log(origin);
-    if('checkout' === origin){
+    if ('checkout' === origin) {
       navigate("/cart");
+    }else{
+      alert('Added to cart successfully.');
+      setSelectedSubcategory(null);
+      setSelectedType(null);
+      setSelectedBrand(null); // Reset brand on category change
+      setServiceDetail(null)
     }
 
   };
 
 
-  const dataItems = items.flatMap((item) => item.subcategories);
-  console.log(dataItems);
+  const serviceTypeIds = items
+    .flatMap((item) => item.subcategories) // Flatten subcategories
+    .flatMap((sub) => sub.serviceTypes) // Flatten serviceTypes
+    .map((serviceType) => serviceType.id); // Extract serviceTypeId
 
+  //console.log(serviceTypeIds);
+
+  useEffect(() => {
+    if (serviceTypeIds.length === 0) return;
+    setLoading(true); // Start loading before API call
+    const serviceTypeQuery = serviceTypeIds.join(",");
+    axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/details?serviceIds=${serviceTypeQuery}`) // 🔹 Replace with your actual API endpoint
+      .then(response => {
+        // Ensure response.data is in the expected format
+        console.log('service/details')
+        console.log(response.data);
+        setServiceDetails(response.data)
+      })
+      .catch(error => console.error("Error fetching service details:", error))
+      .finally(() => setLoading(false)); // Stop loading after API call
+  }, [selectedCategory]);
+
+  const fetchServiceDetils = (serviceId) => {
+    console.log('fetchServiceDetils-' + serviceId);
+    setLoading(true); // Start loading before API call
+    axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/details?serviceIds=${serviceId}`) // 🔹 Replace with your actual API endpoint
+      .then(response => {
+        // Ensure response.data is in the expected format
+        console.log('service/details')
+        console.log(response.data);
+        setServiceDetail(response?.data[0])
+      })
+      .catch(error => console.error("Error fetching service details:", error))
+      .finally(() => setLoading(false)); // Stop loading after API call
+  }
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -113,6 +159,11 @@ const ApplianceRepairService = ({ items, title }) => {
 
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
+      { loading && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
+          <div className="w-16 h-16 border-4 border-[rgb(255,198,48)] border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      )}
       <h1 className="text-center text-2xl font-semibold mb-4">{title}</h1>
 
       {/* Main Categories */}
@@ -215,14 +266,14 @@ const ApplianceRepairService = ({ items, title }) => {
              </label>
               <select
                 className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none"
-                onChange={(e) => { setSelectedType(e.target.value); setErrors(errors.filter(error => error.field !== 'type')); }}
+                onChange={(e) => { setSelectedType(e.target.value); setErrors(errors.filter(error => error.field !== 'type')); fetchServiceDetils(e.target.value) }}
                 value={selectedType || ""}
               >
                 <option value="" disabled>
                   Select an option
                </option>
                 {selectedSubcategory.serviceTypes.map((type, index) => (
-                  <option key={index} value={type.serviceType}>
+                  <option key={index} value={type.id}>
                     {type.serviceType}
                   </option>
                 ))}
@@ -270,17 +321,19 @@ const ApplianceRepairService = ({ items, title }) => {
       {/* Text Area & Upload Section */}
       {selectedType && (
         <div className="mt-4 p-6 bg-white border rounded-lg shadow-lg transition-all">
-          <h3 className="text-xl font-medium mb-4">
-            {selectedType} for {selectedSubcategory.name}
+
+          {serviceDetail && (<h3 className="text-xl font-medium mb-4">
+            {serviceDetail.name}
             {selectedBrand && ` - ${selectedBrand}`}
           </h3>
+          )}
 
           {/* Grid Layout for Side-by-Side Arrangement */}
           <div className="grid grid-cols-2 gap-6">
             {/* Text Area */}
             <textarea
               className="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none transition-all resize-none"
-              placeholder={getError('issueDescription') || 'Comments'}
+              placeholder={getError('issueDescription') || 'Please provide a detailed description of issue you are facing.'}
               style={{
                 borderColor: hasError('issueDescription') ? 'red' : 'initial',
                 borderWidth: hasError('issueDescription') ? '2px' : '0'
@@ -319,126 +372,17 @@ const ApplianceRepairService = ({ items, title }) => {
         <hr />
       </div>
 
-      <div className="mt-4 p-6 bg-white border rounded-lg shadow-lg transition-all">
-        <div className="flex flex-col gap-6 md:flex-row">
-          {/* Constant Section (Shows Selected Category & Subcategory Details) */}
-          <div className="w-full md:w-1/3 bg-gray-100 p-4 rounded-lg shadow-md flex items-center gap-4">
-            {/* Left Section - Text Content */}
-            <div className="flex-1">
-              <h2 className="text-xl font-semibold">{selectedCategoryName}</h2>
-
-              {selectedSubcategory && (
-                <div className="mt-2">
-                  <p className="font-medium">{selectedSubcategory.name}</p>
-                  <p className="text-gray-700">Rs 500 | Time: 3h</p>
-                  <p className="text-gray-700">Rs 500 | Time: 3h</p>
-                  <p className="text-yellow-500 font-semibold">Ratings</p>
-                  {/* View More Button */}
-                  <button
-                    onClick={() => openModal(selectedSubcategory)}
-                    className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
-                  >
-                    View More
-                  </button>
-                </div>
-
-              )}
-            </div>
-
-            {/* Right Section - Image */}
-            {selectedSubcategory && (
-              <img
-                src={selectedSubcategory.imageUrl}
-                alt={selectedSubcategory.name}
-                className="w-24 h-24 object-cover rounded-md"
-              />
-            )}
-          </div>
-
-          {/* Scrollable Section (Vertical with Fixed Width Cards) */}
-          <div className="w-full md:w-2/3 h-[400px] overflow-y-auto scrollbar-hide p-2 bg-gray-50 rounded-lg shadow-md">
-            <div className="flex flex-col space-y-4">
-              {/* Dynamic Items */}
-              {dataItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="w-full md:w-[95%] mx-auto bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex items-center gap-4"
-                >
-                  {/* Left Section - Text Content */}
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
-                    <p className="text-gray-500">Price: {item.id}</p>
-                    <p className="text-yellow-500 font-semibold">Review: {item.isActive} ⭐</p>
-                    <ul className="list-disc pl-5 text-gray-700 mt-2">
-                      {item.serviceTypes.slice(0, 3).map((service, idx) => (
-                        <li key={idx}>{service.serviceType}</li>
-                      ))}
-                    </ul>
-                    {/* View More Button */}
-                    <button
-                      onClick={() => openModal(item)}
-                      className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
-                    >
-                      View More
-                  </button>
-                  </div>
-
-                  {/* Right Section - Image */}
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="w-24 h-24 object-cover rounded-md"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
+      <ServiceList
+        serviceDetail={serviceDetail}
+        serviceDetails={serviceDetails || []}
+        openModal={openModal}
+      />
       {/* Modal Popup */}
-      {isModalOpen && selectedItem && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="flex justify-between items-center border-b pb-2">
-              <h2 className="text-2xl font-bold text-gray-800">{selectedItem.name}</h2>
-              <button onClick={closeModal} className="text-gray-500 hover:text-gray-700 text-xl">
-                ✕
-              </button>
-            </div>
-
-            {/* Modal Content - Image and Details Side by Side */}
-            <div className="flex flex-col md:flex-row items-center gap-6 mt-4">
-              {/* Image Section */}
-              <img
-                src={selectedItem.imageUrl}
-                alt={selectedItem.name}
-                className="w-full md:w-1/2 h-48 object-cover rounded-lg"
-              />
-
-              {/* Details Section */}
-              <div className="flex-1">
-                <p className="text-gray-600 mt-2">Price: {selectedItem.id}</p>
-                <p className="text-yellow-500 font-semibold">Review: {selectedItem.isActive} ⭐</p>
-                <ul className="list-disc pl-5 text-gray-700 mt-2">
-                  {selectedItem.serviceTypes.map((service, idx) => (
-                    <li key={idx}>{service.serviceType}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* Close Button */}
-            <button
-              onClick={closeModal}
-              className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition w-full"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      {
+        isModalOpen && selectedItem && (
+          <ServiceDetail selectedItem={selectedItem}   closeModal={closeModal} />
+        )
+      }
 
 
       <div className="mt-6 flex gap-4">
@@ -454,12 +398,12 @@ const ApplianceRepairService = ({ items, title }) => {
           className="flex-1 bg-[rgb(255,198,48)] text-white py-2 rounded-lg transition-all shadow-md"
         >
 
-         
-            Check out
-           
+
+          Check out
+
         </button>
       </div>
-    </div>
+    </div >
   );
 };
 

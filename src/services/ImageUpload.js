@@ -2,8 +2,8 @@ export const uploadImage = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('image', file);
   
-    try {
-      const response = await fetch('https://node-be-production-b65b.up.railway.app/api/upload/', {
+    try {  
+      const response = await fetch(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/upload/`, { 
         method: 'POST',
         headers: {
           accept: 'application/json',
