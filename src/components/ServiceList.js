@@ -75,23 +75,14 @@ const ServiceList = ({ serviceDetail, serviceDetails, openModal }) => {
 
                                 {/* Image Section */}
                                 <div className="flex-shrink-0 w-24 h-24 md:w-32 md:h-32 flex items-center justify-center">
-                                    {item.imageUrl ? (
+                                    {item.imageUrl && (
                                         <img
                                             src={item.imageUrl}
                                             alt={item.name || "Service Image"}
                                             className="w-full h-full object-cover rounded-md"
-                                            onError={(e) => {
-                                                e.target.onerror = null;
-                                                e.target.src = "https://via.placeholder.com/100";
-                                            }}
+                                            
                                         />
-                                    ) : (
-                                        <img
-                                            src="https://via.placeholder.com/100"
-                                            alt="Placeholder"
-                                            className="w-20 h-20 object-cover rounded-md"
-                                        />
-                                    )}
+                                    ) }
                                 </div>
                             </div>
                         ))}
