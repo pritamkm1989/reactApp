@@ -380,7 +380,7 @@ const AdminProduct = () => {
 
                                             {subcategory.serviceTypes.map((st) => (
                                                 <span key={st.serviceType} className="inline-block bg-gray-200 px-3 py-1 rounded-full text-sm font-medium text-gray-700 m-1 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                                    <Button onClick={() => { openServiceModal(st.id) }} >Service details</Button>
+                                                    <Button onClick={() => { openServiceModal(st.id) }} >{st.serviceType}</Button>
                                                 </span>
                                             ))}
 
