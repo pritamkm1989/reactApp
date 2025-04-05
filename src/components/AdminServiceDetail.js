@@ -137,14 +137,34 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
                 body: JSON.stringify(newServiceDetail),
             });
             setLoading(false)
-            closeModal();
 
-            return await response.json();
+            await response.json();
+            closeModal();
         } catch (error) {
             console.error(`Error in API call: service detail`, error);
         } 
        
     };
+
+    const changeStatus = async (serviceId, status, action) => {
+        console.log(serviceId, status, action);
+        setLoading(true);
+
+        try {
+            const response = await fetch(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateServicType`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify( { id: serviceId, [action]: !status }),
+            });
+            console.log(await response.json());
+            closeModal();
+        } catch (error) {
+            console.error(`Error in API call:` , error);
+        } finally {
+            setLoading(false);
+        }
+
+    }
 
 
 
@@ -161,6 +181,11 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
                 {/* Modal Header */}
                 <div className="flex justify-between items-center border-b pb-2">
                     <h2 className="text-2xl font-bold text-gray-800"> Manage Services Detail</h2>
+                    {newServiceDetail.isActive ? (
+                                        <span onClick={() => changeStatus(serviceId, newServiceDetail.isActive , 'isActive')}  className="text-green-500 bg-gray-200 px-2 py-1 rounded-full mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Active</span>
+                                    ) : (
+                                        <span onClick={() => changeStatus(serviceId, newServiceDetail.isActive , 'isActive')} className="text-red-500 bg-gray-200 px-2 py-1 rounded-full mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Inactive </span>
+                                    )}
                     <button onClick={closeModal} className="text-gray-500 hover:text-gray-700 text-xl">
                         ✕
               </button>

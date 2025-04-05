@@ -23,13 +23,17 @@ const AdminProduct = () => {
     const [serviceId, setServiceId] = useState(null);
 
 
-    const openServiceModal = async (id) => {
+    const openServiceModal = async (id,isActive) => {
         console.log('serviceid ' + id);
         setServiceId(id);
         console.log(id);
-        const details = await apiGet(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/${id}/details`)
+        let details = await apiGet(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/${id}/details`)
         console.log('details' + details)
-        
+        if (!details) {
+            details = { isActive: isActive };
+        }else {
+            details.isActive = isActive
+        }
         setServiceDetail(details)
         setisServiceDtlModalOpen(true);
     };
@@ -37,6 +41,7 @@ const AdminProduct = () => {
     const closeModal = () => {
         setisServiceDtlModalOpen(false);
         setServiceDetail(null);
+        setRefreshKey((prevKey) => prevKey + 1);
     };
 
     useEffect(() => {
@@ -123,6 +128,7 @@ const AdminProduct = () => {
         setIsAlertOpen(false);
         setAction(null);
         setInputValue(""); // Reset after closing
+        // Increment refreshKey
     };
 
     const submitAlert = () => {
@@ -380,7 +386,7 @@ const AdminProduct = () => {
 
                                             {subcategory.serviceTypes.map((st) => (
                                                 <span key={st.serviceType} className="inline-block bg-gray-200 px-3 py-1 rounded-full text-sm font-medium text-gray-700 m-1 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                                    <Button onClick={() => { openServiceModal(st.id) }} >{st.serviceType}</Button>
+                                                    <Button onClick={() => { openServiceModal(st.id,st.isActive) }} >{st.serviceType}</Button>
                                                 </span>
                                             ))}
 
