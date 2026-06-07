@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import api from "../services/api";
 import Appliance from "../components/ApplianceRepairService";
 
 const Service = () => {
@@ -7,14 +7,13 @@ const Service = () => {
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product`)
-      .then(response => {
-        const data = response.data;
+    api.getProducts()
+      .then(data => {
         setCategories(data);
         const firstEnabled = data.find(c => c.homePageEnabled);
         if (firstEnabled) setSelectedService(firstEnabled.id);
       })
-      .catch(error => console.error("Error fetching product:", error));
+      .catch(err => console.error("Error fetching product:", err));
   }, []);
 
   const enabledCategories = categories.filter(cat => cat.homePageEnabled);

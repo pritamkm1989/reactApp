@@ -6,7 +6,7 @@ import ServiceList from "./ServiceList";
 import ServiceDetail from "./ServiceDetails";
 import { CartContext } from "../CartContext";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../services/api";
 import { Button, Card, Textarea, Select, Spinner, Img } from './ui';
 import Stepper from './ui/Stepper';
 import { useToast } from './ui/Toast';
@@ -52,17 +52,17 @@ const ApplianceRepairService = ({ items, title }) => {
   useEffect(() => {
     if (serviceTypeIds.length === 0) return;
     setLoading(true);
-    axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/details?serviceIds=${serviceTypeIds.join(",")}`)
-      .then(response => setServiceDetails(response.data || []))
-      .catch(error => console.error("Error fetching service details:", error))
+    api.getServiceDetails(serviceTypeIds)
+      .then(data => setServiceDetails(data || []))
+      .catch(err => console.error("Error fetching service details:", err))
       .finally(() => setLoading(false));
   }, [serviceTypeIds]);
 
-  const fetchServiceDetails = (serviceId) => {
+  const fetchServiceDetail = (serviceId) => {
     setLoading(true);
-    axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/details?serviceIds=${serviceId}`)
-      .then(response => setServiceDetail(response?.data?.[0] || null))
-      .catch(error => console.error("Error fetching service details:", error))
+    api.getServiceDetails([serviceId])
+      .then(data => setServiceDetail(data?.[0] || null))
+      .catch(err => console.error("Error fetching service detail:", err))
       .finally(() => setLoading(false));
   };
 
@@ -98,17 +98,7 @@ const ApplianceRepairService = ({ items, title }) => {
   };
 
   const handleCheckout = () => {
-    const cartForm = new CartForm(
-      selectedCategoryName, selectedSubcategory, selectedType,
-      selectedBrand, issueDescription, uploadedImage
-    );
-    const validationErrors = cartForm.validate();
-    if (validationErrors.length > 0) {
-      setErrors(validationErrors);
-      addToast(validationErrors[0]?.message, 'error');
-      return;
-    }
-    addToCart(cartForm);
+   
     navigate("/cart");
   };
 
@@ -121,17 +111,15 @@ const ApplianceRepairService = ({ items, title }) => {
   return (
     <div className="space-y-6">
       {loading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 dark:bg-surface-900/60 backdrop-blur-sm">
           <Spinner size="lg" />
         </div>
       )}
 
-      {/* Title */}
       {title && (
         <h2 className="text-xl font-semibold text-surface-900 dark:text-white text-center">{title}</h2>
       )}
 
-      {/* Progress Stepper */}
       <Stepper
         currentKey={
           !selectedCategory ? 'category'
@@ -142,7 +130,7 @@ const ApplianceRepairService = ({ items, title }) => {
         hideTypeStep={!hasServiceTypes}
       />
 
-      {/* Main Categories */}
+      {/* Categories */}
       <div className="flex flex-wrap justify-center gap-3">
         {categories.map(category => (
           <button
@@ -196,7 +184,7 @@ const ApplianceRepairService = ({ items, title }) => {
                       />
                     </div>
                     <div className="p-3">
-                      <p className="text-sm font-medium text-surface-700 text-center truncate">
+                      <p className="text-sm font-medium text-surface-700 dark:text-surface-300 text-center truncate">
                         {sub.name}
                       </p>
                     </div>
@@ -223,7 +211,7 @@ const ApplianceRepairService = ({ items, title }) => {
               onChange={(e) => {
                 setSelectedType(e.target.value);
                 setErrors(errors.filter(err => err.field !== 'type'));
-                fetchServiceDetails(e.target.value);
+                fetchServiceDetail(e.target.value);
               }}
             >
               <option value="" disabled>Select type</option>
@@ -289,7 +277,7 @@ const ApplianceRepairService = ({ items, title }) => {
           >
             <Card>
               {serviceDetail && (
-                <h3 className="text-lg font-medium text-surface-900 mb-4">
+                <h3 className="text-lg font-medium text-surface-900 dark:text-white mb-4">
                   {serviceDetail.name}
                   {selectedBrand && <span className="text-surface-500"> — {selectedBrand}</span>}
                 </h3>
@@ -311,10 +299,10 @@ const ApplianceRepairService = ({ items, title }) => {
                     <Img
                       src={uploadedImage}
                       alt="Uploaded preview"
-                      className="w-24 h-24 object-cover rounded-xl border border-surface-200"
+                      className="w-24 h-24 object-cover rounded-xl border border-surface-200 dark:border-surface-600"
                     />
                   )}
-                  <label className="flex items-center gap-2 px-4 py-2.5 bg-primary-50 text-primary-700 text-sm font-medium rounded-xl cursor-pointer hover:bg-primary-100 transition-colors border border-primary-200">
+                  <label className="flex items-center gap-2 px-4 py-2.5 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-xl cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors border border-primary-200 dark:border-primary-800">
                     <FiUpload size={16} />
                     Upload Image
                     <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
@@ -338,7 +326,6 @@ const ApplianceRepairService = ({ items, title }) => {
         />
       )}
 
-      {/* Detail Modal */}
       {isModalOpen && selectedItem && (
         <ServiceDetail selectedItem={selectedItem} closeModal={closeModal} />
       )}

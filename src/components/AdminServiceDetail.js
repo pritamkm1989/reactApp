@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FiUpload, FiPlus, FiTrash2 } from "react-icons/fi";
-import { uploadImage } from '../services/ImageUpload';
+import api from '../services/api';
 import { Modal, Button, Input, Badge, Spinner } from './ui';
 
 const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
@@ -23,11 +23,9 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
   const handleFileChange = async (event, key) => {
     const file = event.target.files[0];
     if (!file) return;
-    const validFormats = ["image/png", "image/jpeg", "image/jpg"];
-    if (!validFormats.includes(file.type)) {
-      return alert("Invalid file type. Only PNG and JPEG are allowed.");
-    }
-    const imagePath = await uploadImage(file);
+    if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type))
+      return alert("Only PNG and JPEG allowed.");
+    const imagePath = await api.uploadImage(file);
     if (imagePath) setUploadedImages(prev => ({ ...prev, [key]: imagePath }));
   };
 
@@ -72,32 +70,23 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
     });
     form.serviceId = serviceId;
     form.isActive = true;
-
     try {
-      await fetch(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/${serviceId}/saveOrUpdatedetails`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
+      await api.saveServiceDetails(serviceId, form);
       closeModal();
-    } catch (error) {
-      console.error("Error saving service detail:", error);
+    } catch (err) {
+      console.error("Error saving service detail:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  const changeStatus = async (sid, status) => {
+  const changeStatus = async () => {
     setLoading(true);
     try {
-      await fetch(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateServicType`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: sid, isActive: !status }),
-      });
+      await api.saveServiceType({ id: serviceId, isActive: !form.isActive });
       closeModal();
-    } catch (error) {
-      console.error("Error changing status:", error);
+    } catch (err) {
+      console.error("Error changing status:", err);
     } finally {
       setLoading(false);
     }
@@ -106,13 +95,12 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
   return (
     <Modal isOpen={true} onClose={closeModal} title="Manage Service Details" size="lg">
       {loading && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-sm rounded-2xl">
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 dark:bg-surface-900/60 backdrop-blur-sm rounded-2xl">
           <Spinner size="lg" />
         </div>
       )}
 
       <div className="space-y-6">
-        {/* Basic Info */}
         <div className="grid sm:grid-cols-2 gap-4">
           <Input label="Service Name" name="name" value={form.name || ''} onChange={handleChange} placeholder="Service name" />
           <div className="flex items-end gap-2">
@@ -122,9 +110,7 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
             <Badge variant={form.isActive ? 'active' : 'inactive'}>
               {form.isActive ? 'Active' : 'Inactive'}
             </Badge>
-            <Button size="sm" variant="outline" onClick={() => changeStatus(serviceId, form.isActive)}>
-              Toggle
-            </Button>
+            <Button size="sm" variant="outline" onClick={changeStatus}>Toggle</Button>
           </div>
         </div>
 
@@ -133,14 +119,14 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
           <Input label="Discount (%)" name="discount" type="number" value={form.discount || ''} onChange={handleChange} placeholder="0" />
         </div>
 
-        {/* Image upload */}
         <div>
-          <p className="text-sm font-medium text-surface-700 mb-2">Display Image</p>
+          <p className="text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">Display Image</p>
           <div className="flex items-center gap-3">
             {(form.imageUrl || uploadedImages.details) && (
-              <img src={uploadedImages.details || form.imageUrl} alt="" className="w-16 h-16 rounded-lg object-cover border border-surface-200" />
+              <img src={uploadedImages.details || form.imageUrl} alt=""
+                className="w-16 h-16 rounded-lg object-cover border border-surface-200 dark:border-surface-600" />
             )}
-            <label className="flex items-center gap-2 px-3 py-2 bg-primary-50 text-primary-700 text-sm font-medium rounded-xl cursor-pointer hover:bg-primary-100 transition-colors border border-primary-200">
+            <label className="flex items-center gap-2 px-3 py-2 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-sm font-medium rounded-xl cursor-pointer hover:bg-primary-100 dark:hover:bg-primary-900/50 transition-colors border border-primary-200 dark:border-primary-800">
               <FiUpload size={14} />
               Upload
               <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'details')} />
@@ -151,7 +137,7 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
         {/* About Service */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-surface-900">About Service</h3>
+            <h3 className="text-base font-semibold text-surface-900 dark:text-white">About Service</h3>
             <Button size="sm" variant="outline" onClick={addAboutService}>
               <FiPlus size={14} /> Add
             </Button>
@@ -159,8 +145,10 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
           <div className="space-y-2">
             {form.aboutService?.map((item, i) => (
               <div key={i} className="flex gap-2">
-                <Input value={item} onChange={(e) => updateAboutService(i, e.target.value)} placeholder="Describe a feature..." className="flex-1" />
-                <button onClick={() => removeAboutService(i)} className="p-2 text-surface-400 hover:text-error transition-colors">
+                <Input value={item} onChange={(e) => updateAboutService(i, e.target.value)}
+                  placeholder="Describe a feature..." className="flex-1" />
+                <button onClick={() => removeAboutService(i)}
+                  className="p-2 text-surface-400 hover:text-error transition-colors">
                   <FiTrash2 size={16} />
                 </button>
               </div>
@@ -171,17 +159,18 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
         {/* How It Works */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-surface-900">How It Works</h3>
+            <h3 className="text-base font-semibold text-surface-900 dark:text-white">How It Works</h3>
             <Button size="sm" variant="outline" onClick={addHowItWorks}>
               <FiPlus size={14} /> Add Step
             </Button>
           </div>
           <div className="space-y-3">
             {form.howItWorks?.map((step, i) => (
-              <div key={i} className="bg-surface-50 rounded-xl p-4">
+              <div key={i} className="bg-surface-50 dark:bg-surface-800/50 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-surface-500 uppercase">Step {i + 1}</span>
-                  <button onClick={() => removeHowItWorks(i)} className="p-1 text-surface-400 hover:text-error transition-colors">
+                  <span className="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase">Step {i + 1}</span>
+                  <button onClick={() => removeHowItWorks(i)}
+                    className="p-1 text-surface-400 hover:text-error transition-colors">
                     <FiTrash2 size={14} />
                   </button>
                 </div>
@@ -191,9 +180,10 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
                 </div>
                 <div className="flex items-center gap-2 mt-2">
                   {(step.imageUrl || uploadedImages['hiw' + i]) && (
-                    <img src={uploadedImages['hiw' + i] || step.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover border border-surface-200" />
+                    <img src={uploadedImages['hiw' + i] || step.imageUrl} alt=""
+                      className="w-10 h-10 rounded-lg object-cover border border-surface-200 dark:border-surface-600" />
                   )}
-                  <label className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white text-surface-600 text-xs font-medium rounded-lg cursor-pointer hover:bg-surface-100 transition-colors border border-surface-200">
+                  <label className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white dark:bg-surface-800 text-surface-600 dark:text-surface-300 text-xs font-medium rounded-lg cursor-pointer hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors border border-surface-200 dark:border-surface-600">
                     <FiUpload size={12} />
                     Image
                     <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'hiw' + i)} />
@@ -207,17 +197,18 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
         {/* FAQ */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-semibold text-surface-900">FAQ</h3>
+            <h3 className="text-base font-semibold text-surface-900 dark:text-white">FAQ</h3>
             <Button size="sm" variant="outline" onClick={addFAQ}>
               <FiPlus size={14} /> Add FAQ
             </Button>
           </div>
           <div className="space-y-3">
             {form.faq?.map((faq, i) => (
-              <div key={i} className="bg-surface-50 rounded-xl p-4">
+              <div key={i} className="bg-surface-50 dark:bg-surface-800/50 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-semibold text-surface-500 uppercase">Q{i + 1}</span>
-                  <button onClick={() => removeFAQ(i)} className="p-1 text-surface-400 hover:text-error transition-colors">
+                  <span className="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase">Q{i + 1}</span>
+                  <button onClick={() => removeFAQ(i)}
+                    className="p-1 text-surface-400 hover:text-error transition-colors">
                     <FiTrash2 size={14} />
                   </button>
                 </div>
@@ -230,7 +221,6 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex gap-3 pt-2">
           <Button variant="secondary" className="flex-1" onClick={closeModal}>Cancel</Button>
           <Button variant="primary" className="flex-1" onClick={submitDetail}>Save Changes</Button>

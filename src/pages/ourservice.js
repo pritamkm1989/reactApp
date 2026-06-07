@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
+import api from "../services/api";
 import Layout from './layout';
 import Appliance from "../components/ApplianceRepairService";
 import { SearchBar } from '../components/ui';
@@ -11,14 +11,13 @@ const ServicePage = () => {
   const [search, setSearch] = useState('');
 
   useEffect(() => {
-    axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product`)
-      .then(response => {
-        const data = response.data;
+    api.getProducts()
+      .then(data => {
         setCategories(data);
         const first = data.find(c => c.isActive);
         if (first) setSelectedService(first.id);
       })
-      .catch(error => console.error("Error fetching product:", error));
+      .catch(err => console.error("Error fetching product:", err));
   }, []);
 
   const activeCategories = categories.filter(c => c.isActive);
