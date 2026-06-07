@@ -1,492 +1,243 @@
 import React, { useState, useEffect } from "react";
-import { FiUpload } from "react-icons/fi";
-import { uploadImage } from '../services/ImageUpload'
+import { FiUpload, FiPlus, FiTrash2 } from "react-icons/fi";
+import { uploadImage } from '../services/ImageUpload';
+import { Modal, Button, Input, Badge, Spinner } from './ui';
+
 const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
-    const [uploadedImages, setUploadedImages] = useState({});
-    const [loading, setLoading] = useState(false);
-    
-    const handleFileChange = async (event, index) => {
-        const file = event.target.files[0];
-        if (file) {
-            //setUploadedImage(URL.createObjectURL(file));
+  const [uploadedImages, setUploadedImages] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({
+    name: "", imageUrl: "", rate: "", discount: "",
+    aboutService: [], howItWorks: [], faq: []
+  });
 
-            const validFormats = ["image/png", "image/jpeg", "image/jpg"];
-            if (!validFormats.includes(file.type)) {
-                alert("Invalid file type. Only PNG and JPEG are allowed.");
-                return;
-            }
+  useEffect(() => {
+    if (serviceDetail) setForm(serviceDetail);
+  }, [serviceDetail]);
 
-            const imagePath = await uploadImage(file);
-            console.log(imagePath)
-            if (imagePath) {
-                // Update only the specific subcategory's image
-                setUploadedImages((prev) => ({
-                    ...prev,
-                    [index]: imagePath,
-                }));
-            }
-        }
-    };
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
 
-    const [newServiceDetail, setNewServiceDetail] = useState({
-        name: "",
-        imageUrl: "",
-        rate: "",
-        discount: "",
-        aboutService: [],
-        howItWorks: [],
-        faq: []
+  const handleFileChange = async (event, key) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const validFormats = ["image/png", "image/jpeg", "image/jpg"];
+    if (!validFormats.includes(file.type)) {
+      return alert("Invalid file type. Only PNG and JPEG are allowed.");
+    }
+    const imagePath = await uploadImage(file);
+    if (imagePath) setUploadedImages(prev => ({ ...prev, [key]: imagePath }));
+  };
+
+  const addAboutService = () => setForm(prev => ({ ...prev, aboutService: [...(prev.aboutService || []), ""] }));
+  const updateAboutService = (i, value) => {
+    const updated = [...form.aboutService];
+    updated[i] = value;
+    setForm(prev => ({ ...prev, aboutService: updated }));
+  };
+  const removeAboutService = (i) => {
+    setForm(prev => ({ ...prev, aboutService: prev.aboutService.filter((_, idx) => idx !== i) }));
+  };
+
+  const addFAQ = () => setForm(prev => ({ ...prev, faq: [...(prev.faq || []), { question: "", answer: "" }] }));
+  const updateFAQ = (i, field, value) => {
+    const updated = [...form.faq];
+    updated[i][field] = value;
+    setForm(prev => ({ ...prev, faq: updated }));
+  };
+  const removeFAQ = (i) => {
+    setForm(prev => ({ ...prev, faq: prev.faq.filter((_, idx) => idx !== i) }));
+  };
+
+  const addHowItWorks = () => setForm(prev => ({ ...prev, howItWorks: [...(prev.howItWorks || []), { title: "", description: "", imageUrl: "" }] }));
+  const updateHowItWorks = (i, field, value) => {
+    const updated = [...(form.howItWorks || [])];
+    updated[i][field] = value;
+    setForm(prev => ({ ...prev, howItWorks: updated }));
+  };
+  const removeHowItWorks = (i) => {
+    setForm(prev => ({ ...prev, howItWorks: prev.howItWorks.filter((_, idx) => idx !== i) }));
+  };
+
+  const submitDetail = async () => {
+    setLoading(true);
+    if (uploadedImages.details) form.imageUrl = uploadedImages.details;
+    Object.keys(uploadedImages).forEach(key => {
+      if (key.startsWith('hiw')) {
+        const index = parseInt(key.replace('hiw', ''));
+        if (form.howItWorks[index]) form.howItWorks[index].imageUrl = uploadedImages[key];
+      }
     });
+    form.serviceId = serviceId;
+    form.isActive = true;
 
-    useEffect(() => {
-
-        setNewServiceDetail(serviceDetail);
-
-    }, [serviceDetail]);
-
-
-    // Add About Service
-    const addAboutService = () => {
-
-        setNewServiceDetail((prev) => ({
-            ...prev,
-            aboutService: [...(prev?.aboutService || []), ""]
-        }));
-
-    };
-
-    // Update About Service
-    const updateAboutService = (index, value) => {
-        const updatedAboutService = [...newServiceDetail.aboutService];
-        updatedAboutService[index] = value;
-        setNewServiceDetail((prev) => ({
-            ...prev,
-            aboutService: updatedAboutService
-        }));
-    };
-
-    // Add FAQ
-    const addFAQ = () => {
-        setNewServiceDetail((prev) => ({
-            ...prev,
-            faq: [...prev?.faq || [], { question: "", answer: "" }]
-        }));
-    };
-
-    // Update FAQ
-    const updateFaq = (index, field, value) => {
-        const updatedFAQ = [...newServiceDetail.faq];
-        updatedFAQ[index][field] = value;
-        setNewServiceDetail((prev) => ({
-            ...prev,
-            faq: updatedFAQ
-        }));
+    try {
+      await fetch(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/${serviceId}/saveOrUpdatedetails`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      closeModal();
+    } catch (error) {
+      console.error("Error saving service detail:", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Add How It Works
-    const addHowItWorks = () => {
-        setNewServiceDetail((prev) => ({
-            ...prev,
-            howItWorks: [...(prev?.howItWorks || []),{ title: "", description: "",imageUrl:"" }]
-        }));
-    };
-
-    // Update How It Works
-    const updateHowItWorks = (index,field, value) => {
-        const updatedHowItWorks = [...(newServiceDetail.howItWorks || [])];
-        updatedHowItWorks[index][field] = value;
-        setNewServiceDetail((prev) => ({
-            ...prev,
-            howItWorks: updatedHowItWorks
-        }));
-       // console.log('updateHowItWorks'+newServiceDetail?.howItWorks[1].title)
-    };
-
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setNewServiceDetail((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const submitDeatil = async () => {
-        console.log(serviceId);
-        setLoading(true)
-        if (uploadedImages.details) {
-            newServiceDetail.imageUrl = uploadedImages.details
-        }
-
-        Object.keys(uploadedImages).forEach((key, index) => {
-            if (key.startsWith('hiw')) {
-
-                const index = parseInt(key.replace('hiw', '')); // Extract the index (0, 1, 2, ...)
-
-                // Ensure that the index exists in howItWorks and update the imageUrl
-                if (newServiceDetail.howItWorks[index]) {
-                    newServiceDetail.howItWorks[index].imageUrl = uploadedImages[key];
-                }
-            }
-        })
-        newServiceDetail.serviceId = serviceId;
-        newServiceDetail.isActive = true;
-        console.log(newServiceDetail);
-        
-        try {
-            const response = await fetch(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/${serviceId}/saveOrUpdatedetails`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(newServiceDetail),
-            });
-            setLoading(false)
-
-            await response.json();
-            closeModal();
-        } catch (error) {
-            console.error(`Error in API call: service detail`, error);
-        } 
-       
-    };
-
-    const changeStatus = async (serviceId, status, action) => {
-        console.log(serviceId, status, action);
-        setLoading(true);
-
-        try {
-            const response = await fetch(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateServicType`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify( { id: serviceId, [action]: !status }),
-            });
-            console.log(await response.json());
-            closeModal();
-        } catch (error) {
-            console.error(`Error in API call:` , error);
-        } finally {
-            setLoading(false);
-        }
-
+  const changeStatus = async (sid, status) => {
+    setLoading(true);
+    try {
+      await fetch(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateServicType`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: sid, isActive: !status }),
+      });
+      closeModal();
+    } catch (error) {
+      console.error("Error changing status:", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-
-
-    return (
-
-      
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-              { loading && (
-            <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
-                <div className="w-16 h-16 border-4 border-[rgb(255,198,48)] border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        )}
-            <div className="bg-white rounded-lg shadow-lg p-6 w-11/12 md:w-1/2 max-h-[80vh] overflow-y-auto">
-                {/* Modal Header */}
-                <div className="flex justify-between items-center border-b pb-2">
-                    <h2 className="text-2xl font-bold text-gray-800"> Manage Services Detail</h2>
-                    {newServiceDetail.isActive ? (
-                                        <span onClick={() => changeStatus(serviceId, newServiceDetail.isActive , 'isActive')}  className="text-green-500 bg-gray-200 px-2 py-1 rounded-full mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Active</span>
-                                    ) : (
-                                        <span onClick={() => changeStatus(serviceId, newServiceDetail.isActive , 'isActive')} className="text-red-500 bg-gray-200 px-2 py-1 rounded-full mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Inactive </span>
-                                    )}
-                    <button onClick={closeModal} className="text-gray-500 hover:text-gray-700 text-xl">
-                        ✕
-              </button>
-                </div>
-
-                <div className="flex-1">
-                    <div className="">
-                        <table className="min-w-full border border-gray-300">
-                            <tbody>
-                                {/* Service Name */}
-                                <tr className="border-b">
-                                    <td className="p-2 font-semibold border-r">Detail Name</td>
-                                    <td className="p-2">
-                                        <input
-                                            type="text"
-                                            name = "name"
-                                            //onChange={handleChange}
-                                            value = {newServiceDetail?.name ||  'Sub category & Service type name'}
-                                            //placeholder={newServiceDetail?.name || 'Sub category & Service type name'}
-                                            className="border p-2 w-full"
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* Image Upload */}
-                                <tr className="border-b">
-                                    <td className="p-2 font-semibold border-r">Dispaly Image</td>
-                                    <td className="p-2">
-
-
-                                        {newServiceDetail?.imageUrl && (
-                                            <img
-                                                src={newServiceDetail.imageUrl}
-                                                alt={newServiceDetail.name}
-                                                className="w-20 h-20 object-cover rounded-lg mt-2"
-                                            />
-                                        )}
-
-                                        <label className="w-full flex items-center justify-center p-2  text-green-500 rounded-lg cursor-pointer hover:bg-[rgb(255,198,48)] transition-all shadow-md">
-                                            <FiUpload className="mr-2 text-lg" />
-                                         Change Dispaly Image
-                                        <input
-                                                type="file"
-                                                className="hidden"
-                                                multiple={false}
-                                                onChange={(event) => handleFileChange(event, 'details')}
-                                            />
-                                        </label>
-
-                                    </td>
-                                </tr>
-
-                                {/* Service Rate */}
-                                <tr className="border-b">
-                                    <td className="p-2 font-semibold border-r">Rate</td>
-                                    <td className="p-2">
-                                        <input
-                                            type="number"
-                                            name= 'rate'
-                                            onChange={handleChange}
-                                            value={newServiceDetail?.rate || "Enter rate"}
-                                            className="border p-2 w-full"
-                                        />
-                                    </td>
-                                </tr>
-
-                                {/* Discount */}
-                                <tr>
-                                    <td className="p-2 font-semibold border-r">Discount</td>
-                                    <td className="p-2">
-                                        <input
-                                            type="number"
-                                            name="discount"
-                                            value={newServiceDetail?.discount}
-                                            onChange={handleChange}
-                                            placeholder={newServiceDetail?.discount || "Enter discount"}
-                                            className="border p-2 w-full"
-                                        />
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-
-                    <div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-800">About Service</h2>
-                        </div>
-                        <div>
-                            <table className="min-w-full border border-gray-300">
-                                <thead>
-                                    <tr className="bg-gray-100">
-                                        <th className="p-2 border">Sl No</th>
-                                        <th className="p-2 border">About Service</th>
-
-
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {newServiceDetail?.aboutService?.map((abt, index) => (
-                                        <tr className="border">
-                                            <td className="p-2 border">
-                                                <div
-                                                    key={index + 1}
-                                                >{index + 1}</div>
-                                            </td>
-                                            <td className="p-2 border">
-                                                <input
-                                                    type="text"
-                                                    className="border p-2 w-full"
-                                                    value={abt}
-                                                    placeholder={abt}
-                                                    onChange={(e) => updateAboutService(index, e.target.value)}
-                                                />
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    <tr>
-                                        <td className="p-2 border">
-                                            <span onClick={addAboutService} className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer"> Add</span>
-                                        </td>
-                                        <td className="p-2 border">
-
-                                        </td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                    </div>
-                    <div>
-                        <div><h2 className="text-2xl font-bold text-gray-800">How it works</h2></div>
-                        <div>
-                            <table className="min-w-full border border-gray-300">
-                                <thead>
-                                    <tr className="bg-gray-100">
-                                        <th className="p-2 border">Sl No</th>
-                                        <th className="p-2 border">Title</th>
-                                        <th className="p-2 border">Description</th>
-                                        <th className="p-2 border">Dispaly Iamge</th>
-
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {newServiceDetail?.howItWorks?.map((howItWorks, index) => (
-                                        <tr className="border">
-                                            <td className="p-2 border">
-                                                <div
-                                                    key={index + 1}
-                                                >{index + 1}</div>
-                                            </td>
-                                            <td className="p-2 border">
-                                        
-                                                
-                                                <input
-                                                    type="text"
-                                                    className="border p-2 w-full"
-                                                    placeholder={howItWorks.title}
-                                                    value={howItWorks.title}
-                                                    onChange={(e) => updateHowItWorks(index, "title", e.target.value)}
-                                                />
-                                            </td>
-                                            <td className="p-2 border">
-                                                
-                                                <input
-                                                    type="text"
-                                                    className="border p-2 w-full"
-                                                    placeholder={howItWorks.description}
-                                                    value={howItWorks.description}
-                                                    onChange={(e) => updateHowItWorks(index, "description", e.target.value)}
-                                                />
-                                            </td>
-                                            <td className="p-2 border">
-                                            {howItWorks.imageUrl && (
-                                                <img
-                                                    src={howItWorks.imageUrl}
-
-                                                    className="w-20 h-20 object-cover rounded-lg mb-2"
-                                                />
-                                            )}
-
-                                                <label className="w-full flex items-center justify-center p-2  text-green-500 rounded-lg cursor-pointer hover:bg-[rgb(255,198,48)] transition-all shadow-md">
-                                                    <FiUpload className="mr-2 text-lg" />
-                                         Change Dispaly Image
-                                        <input
-                                                        type="file"
-                                                        className="hidden"
-                                                        multiple={false}
-                                                        onChange={(event) => handleFileChange(event,'hiw'+index)}
-                                                    />
-                                                </label>
-                                            </td>
-                                        </tr>))}
-
-                                    <tr>
-                                        <td className="p-2 border">
-                                            <span onClick={addHowItWorks} className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer"> Add</span>
-                                        </td>
-
-                                        <td className="p-2 border">
-                                          
-                                                    </td>
-                                        <td className="p-2 border">
-                                           
-                                                    </td>
-                                        <td className="p-2 border">
-
-
-                                          
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                        </div>
-                    </div>
-
-                    <div>
-                        <div>
-                            <h2 className="text-2xl font-bold text-gray-800">Frequently Asked Questions</h2>
-                        </div>
-                        <div>
-                            <table className="min-w-full border border-gray-300">
-                                <thead>
-                                    <tr className="bg-gray-100">
-                                        <th className="p-2 border">Sl No</th>
-                                        <th className="p-2 border">Question</th>
-                                        <th className="p-2 border">Answer</th>
-
-
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {newServiceDetail?.faq?.map((fa, index) => (
-                                        <tr className="border">
-                                            <td className="p-2 border">
-                                                <div
-                                                    key={index + 1}
-                                                >{index + 1}</div>
-                                            </td>
-                                            <td className="p-2 border">
-                        
-                                                <input
-                                                    type="text"
-                                                    className="border p-2 w-full"
-                                                    placeholder={fa.question}
-                                                    value = {fa.question}
-                                                    onChange={(e) => updateFaq(index,'question', e.target.value)}
-                                                />
-                                            </td>
-                                            <td className="p-2 border">
-
-                                                <input
-                                                    type="text"
-                                                    className="border p-2 w-full"
-                                                    value = {fa.answer}
-                                                    placeholder={fa.answer}
-                                                    onChange={(e) => updateFaq(index,'answer', e.target.value)}
-                                                />
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    <tr>
-                                        <td className="p-2 border">
-                                            <span onClick={addFAQ} className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                                Add
-                                                    </span>
-                                        </td>
-                                        <td className="p-2 border">
-
-                                        </td>
-                                        <td className="p-2 border">
-
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                    </div>
-                </div>
-
-                {/* Close Button */}
-                <div className="mt-6 flex gap-4">
-                    <button
-                        onClick={closeModal}
-                        className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg shadow-md hover:bg-red-600 transition w-full"
-                    >
-                        Close
-         </button>
-
-                    <button
-                        onClick={submitDeatil}
-                        className="mt-4 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md hover:bg-[rgb(255,198,48)] transition w-full"
-                    >
-                        Submit
-         </button>
-                </div>
-            </div>
+  return (
+    <Modal isOpen={true} onClose={closeModal} title="Manage Service Details" size="lg">
+      {loading && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-sm rounded-2xl">
+          <Spinner size="lg" />
         </div>
-    );
+      )}
+
+      <div className="space-y-6">
+        {/* Basic Info */}
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Input label="Service Name" name="name" value={form.name || ''} onChange={handleChange} placeholder="Service name" />
+          <div className="flex items-end gap-2">
+            <div className="flex-1">
+              <Input label="Status" value="" disabled />
+            </div>
+            <Badge variant={form.isActive ? 'active' : 'inactive'}>
+              {form.isActive ? 'Active' : 'Inactive'}
+            </Badge>
+            <Button size="sm" variant="outline" onClick={() => changeStatus(serviceId, form.isActive)}>
+              Toggle
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid sm:grid-cols-2 gap-4">
+          <Input label="Rate (₹)" name="rate" type="number" value={form.rate || ''} onChange={handleChange} placeholder="0" />
+          <Input label="Discount (%)" name="discount" type="number" value={form.discount || ''} onChange={handleChange} placeholder="0" />
+        </div>
+
+        {/* Image upload */}
+        <div>
+          <p className="text-sm font-medium text-surface-700 mb-2">Display Image</p>
+          <div className="flex items-center gap-3">
+            {(form.imageUrl || uploadedImages.details) && (
+              <img src={uploadedImages.details || form.imageUrl} alt="" className="w-16 h-16 rounded-lg object-cover border border-surface-200" />
+            )}
+            <label className="flex items-center gap-2 px-3 py-2 bg-primary-50 text-primary-700 text-sm font-medium rounded-xl cursor-pointer hover:bg-primary-100 transition-colors border border-primary-200">
+              <FiUpload size={14} />
+              Upload
+              <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'details')} />
+            </label>
+          </div>
+        </div>
+
+        {/* About Service */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-semibold text-surface-900">About Service</h3>
+            <Button size="sm" variant="outline" onClick={addAboutService}>
+              <FiPlus size={14} /> Add
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {form.aboutService?.map((item, i) => (
+              <div key={i} className="flex gap-2">
+                <Input value={item} onChange={(e) => updateAboutService(i, e.target.value)} placeholder="Describe a feature..." className="flex-1" />
+                <button onClick={() => removeAboutService(i)} className="p-2 text-surface-400 hover:text-error transition-colors">
+                  <FiTrash2 size={16} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* How It Works */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-semibold text-surface-900">How It Works</h3>
+            <Button size="sm" variant="outline" onClick={addHowItWorks}>
+              <FiPlus size={14} /> Add Step
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {form.howItWorks?.map((step, i) => (
+              <div key={i} className="bg-surface-50 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-surface-500 uppercase">Step {i + 1}</span>
+                  <button onClick={() => removeHowItWorks(i)} className="p-1 text-surface-400 hover:text-error transition-colors">
+                    <FiTrash2 size={14} />
+                  </button>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Input value={step.title} onChange={(e) => updateHowItWorks(i, 'title', e.target.value)} placeholder="Title" />
+                  <Input value={step.description} onChange={(e) => updateHowItWorks(i, 'description', e.target.value)} placeholder="Description" />
+                </div>
+                <div className="flex items-center gap-2 mt-2">
+                  {(step.imageUrl || uploadedImages['hiw' + i]) && (
+                    <img src={uploadedImages['hiw' + i] || step.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover border border-surface-200" />
+                  )}
+                  <label className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white text-surface-600 text-xs font-medium rounded-lg cursor-pointer hover:bg-surface-100 transition-colors border border-surface-200">
+                    <FiUpload size={12} />
+                    Image
+                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, 'hiw' + i)} />
+                  </label>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* FAQ */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-base font-semibold text-surface-900">FAQ</h3>
+            <Button size="sm" variant="outline" onClick={addFAQ}>
+              <FiPlus size={14} /> Add FAQ
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {form.faq?.map((faq, i) => (
+              <div key={i} className="bg-surface-50 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-semibold text-surface-500 uppercase">Q{i + 1}</span>
+                  <button onClick={() => removeFAQ(i)} className="p-1 text-surface-400 hover:text-error transition-colors">
+                    <FiTrash2 size={14} />
+                  </button>
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <Input value={faq.question} onChange={(e) => updateFAQ(i, 'question', e.target.value)} placeholder="Question" />
+                  <Input value={faq.answer} onChange={(e) => updateFAQ(i, 'answer', e.target.value)} placeholder="Answer" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3 pt-2">
+          <Button variant="secondary" className="flex-1" onClick={closeModal}>Cancel</Button>
+          <Button variant="primary" className="flex-1" onClick={submitDetail}>Save Changes</Button>
+        </div>
+      </div>
+    </Modal>
+  );
 };
 
 export default AdminServiceDetail;

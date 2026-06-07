@@ -1,42 +1,41 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-
 import image1 from "../img/home-1.jpg";
 import image2 from "../img/home2.jpg";
 import image3 from "../img/home3.jpg";
 import image4 from "../img/home4.jpg";
-const images = [
-  image1,
-  image2,
-  image3,
-  image4
-];
+
+const images = [image1, image2, image3, image4];
 
 const ImageBox = () => {
   const [flippedIndex, setFlippedIndex] = useState(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setFlippedIndex((prevIndex) => (prevIndex === null ? 0 : (prevIndex + 1) % images.length));
-    }, 2000); // Flip every 2 seconds
-
+      setFlippedIndex(prev => (prev === null ? 0 : (prev + 1) % images.length));
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4">
-      {images.map((imageUrl, index) => (
+    <div className="grid grid-cols-2 gap-3">
+      {images.map((url, i) => (
         <motion.div
-          key={index}
-          className="w-32 h-32 md:w-48 md:h-48 overflow-hidden rounded-2xl shadow-lg cursor-pointer relative"
-          animate={{ rotateY: flippedIndex === index ? 180 : 0 }}
-          transition={{ duration: 0.6 }}
+          key={i}
+          className="relative w-full aspect-square overflow-hidden rounded-2xl shadow-soft-md"
+          animate={{ rotateY: flippedIndex === i ? 180 : 0 }}
+          transition={{ duration: 0.6, ease: 'easeInOut' }}
           style={{ perspective: 1000 }}
         >
-          <div className="absolute w-full h-full backface-hidden">
-            <img src={imageUrl} alt={`Image ${index + 1}`} className="w-full h-full object-cover" />
+          <div className="absolute inset-0 backface-hidden" style={{ backfaceVisibility: 'hidden' }}>
+            <img src={url} alt="" className="w-full h-full object-cover" />
           </div>
-          
+          <div
+            className="absolute inset-0 backface-hidden bg-primary-500 flex items-center justify-center"
+            style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+          >
+            <span className="text-white text-3xl font-bold">UrbEx</span>
+          </div>
         </motion.div>
       ))}
     </div>

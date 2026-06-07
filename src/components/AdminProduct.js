@@ -1,487 +1,360 @@
-import React from "react";
-import { FiUpload } from "react-icons/fi";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { FiPlus, FiUpload, FiEdit3, FiRefreshCw, FiX } from "react-icons/fi";
 import axios from "axios";
-import { uploadImage } from '../services/ImageUpload'
-import AdminServiceDetail from './AdminServiceDetail'
-
+import { uploadImage } from '../services/ImageUpload';
+import AdminServiceDetail from './AdminServiceDetail';
+import { Button, Card, Badge, LoadingOverlay, Modal, Input } from './ui';
 
 const AdminProduct = () => {
-    const [products, setProducts] = useState([]);
-    const [isAlertOpen, setIsAlertOpen] = useState(false);
-    const [inputValue, setInputValue] = useState("");
-    const [newSubCategory, setNewSubCategory] = useState("");
-    const [selectedCategory, setSelectedCategory] = useState(null);
-    const [selectedProductId, setSelectedProductId] = useState(null);
-    const [action, setAction] = useState(null);
-    const [refreshKey, setRefreshKey] = useState(0);
-    const [loading, setLoading] = useState(false);
-    const [subCategoryId, setSubCategoryId] = useState(null);
-    const [uploadedImages, setUploadedImages] = useState({});
-    const [isServiceDtlModalOpen, setisServiceDtlModalOpen] = useState(false);
-    const [serviceDetail, setServiceDetail] = useState(null);
-    const [serviceId, setServiceId] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedProductId, setSelectedProductId] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [subCategoryId, setSubCategoryId] = useState(null);
+  const [uploadedImages, setUploadedImages] = useState({});
+  const [isServiceDtlModalOpen, setisServiceDtlModalOpen] = useState(false);
+  const [serviceDetail, setServiceDetail] = useState(null);
+  const [serviceId, setServiceId] = useState(null);
+  const [newSubCategory, setNewSubCategory] = useState('');
 
+  // Dialog state
+  const [dialog, setDialog] = useState({ open: false, action: null, productId: null });
 
-    const openServiceModal = async (id,isActive) => {
-        console.log('serviceid ' + id);
-        setServiceId(id);
-        console.log(id);
-        let details = await apiGet(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/${id}/details`)
-        console.log('details' + details)
-        if (!details) {
-            details = { isActive: isActive };
-        }else {
-            details.isActive = isActive
+  useEffect(() => {
+    setLoading(true);
+    axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/all`)
+      .then(response => {
+        setProducts(response.data);
+        if (selectedCategory) {
+          const updated = response.data
+            .find(p => p.id === selectedProductId)
+            ?.categories.find(c => c.id === selectedCategory.id);
+          setSelectedCategory(updated);
         }
-        setServiceDetail(details)
-        setisServiceDtlModalOpen(true);
-    };
+      })
+      .catch(error => console.error("Error fetching product:", error))
+      .finally(() => setLoading(false));
+  }, [refreshKey]);
 
-    const closeModal = () => {
-        setisServiceDtlModalOpen(false);
-        setServiceDetail(null);
-        setRefreshKey((prevKey) => prevKey + 1);
-    };
-
-    useEffect(() => {
-        setLoading(true); // Start loading before API call
-        axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/all`) // 🔹 Replace with your actual API endpoint
-            .then(response => {
-                // Ensure response.data is in the expected format
-                console.log('fetch')
-                setProducts(response.data);
-                console.log(response.data);
-                if (selectedCategory) {
-                    const updatedCategory = response.data
-                        .find((p) => p.id === selectedProductId)
-                        ?.categories.find((c) => c.id === selectedCategory.id);
-
-                    setSelectedCategory(updatedCategory);
-                }
-            })
-            .catch(error => console.error("Error fetching product:", error))
-            .finally(() => setLoading(false)); // Stop loading after API call
-    }, [refreshKey]);
-
-    const apiPost = async (url, body) => {
-        setLoading(true);
-        console.log(body)
-        try {
-            const response = await fetch(url, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-            });
-            return await response.json();
-        } catch (error) {
-            console.error(`Error in API call: ${url}`, error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const apiGet = async (url) => {
-        setLoading(true);
-        try {
-            const response = await axios.get(url);
-            return response.data; // Return the response data
-        } catch (error) {
-            console.error("Error fetching product:", error);
-            return null; // Optionally return null or a default value if there's an error
-        } finally {
-            setLoading(false); // Stop loading after API call
-        }
-    };
-
-    const addNewCategory = async (categoryName) => {
-
-        await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateCategory`, { name: categoryName, productId: selectedProductId });
-        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
-
-    };
-    const viewCategory = (productId, categoryId) => {
-        console.log(productId, categoryId);
-        const product = products.find((pro) => pro.id === productId).categories;
-        const category = product.find((cat) => cat.id === categoryId)
-        setSelectedCategory(category);
-        setSelectedProductId(productId);
-    };
-
-    const addNewProduct = async (value) => {
-        await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateProduct`, { name: value }); // Pass the productName
-
-        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
-
-    };
-
-
-    const openAlert = (action, productId) => {
-        setAction(action);
-        if ('CATEGORY' === action) {
-            setSelectedProductId(productId);
-        }
-        setIsAlertOpen(true);
-    };
-    const closeAlert = () => {
-        console.log("User Input:", inputValue); // Handle input value
-        setIsAlertOpen(false);
-        setAction(null);
-        setInputValue(""); // Reset after closing
-        // Increment refreshKey
-    };
-
-    const submitAlert = () => {
-        console.log("User Input:", inputValue);
-        if (inputValue.length < 3 || inputValue.length > 50) {
-            alert('Name should between  3 and 10 characters.');
-            return;
-
-        }
-
-        if ('PRODUCT' === action) {
-            addNewProduct(inputValue);
-        }
-
-        if ('CATEGORY' === action) {
-            addNewCategory(inputValue);
-        }
-
-        if ('SERVICE_TYPE' === action) {
-            addNewServiceType(inputValue);
-        }
-
-        if ('BRAND' === action) {
-            addNewBrand(inputValue);
-        }
-
-        setIsAlertOpen(false);
-        setInputValue("");
-        setAction("");// Reset after closing
-    };
-
-    const changeStatus = async (productId, status, action) => {
-        await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateProduct`, { id: productId, [action]: !status }); // Pass the productName
-
-        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
-
+  const apiPost = async (url, body) => {
+    setLoading(true);
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      return await response.json();
+    } catch (error) {
+      console.error(`Error in API call: ${url}`, error);
+    } finally {
+      setLoading(false);
     }
-    const changeCategoryStatus = async (categoryId, status, action) => {
-        await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateCategory`, { id: categoryId, [action]: !status }); // Pass the productName
+  };
 
-        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
+  const openServiceModal = async (id, isActive) => {
+    setServiceId(id);
+    let details = await apiGet(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/${id}/details`);
+    if (!details) details = { isActive };
+    else details.isActive = isActive;
+    setServiceDetail(details);
+    setisServiceDtlModalOpen(true);
+  };
 
+  const apiGet = async (url) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(url);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching:", error);
+      return null;
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const handleFileChange = async (event, subcategoryId) => {
-        const file = event.target.files[0];
-        if (file) {
-            //setUploadedImage(URL.createObjectURL(file));
+  const closeModal = () => {
+    setisServiceDtlModalOpen(false);
+    setServiceDetail(null);
+    setRefreshKey(k => k + 1);
+  };
 
-            const validFormats = ["image/png", "image/jpeg", "image/jpg"];
-            if (!validFormats.includes(file.type)) {
-                alert("Invalid file type. Only PNG and JPEG are allowed.");
-                return;
-            }
-
-            const imagePath = await uploadImage(file);
-            console.log(imagePath)
-            if (imagePath) {
-                // Update only the specific subcategory's image
-                setUploadedImages((prev) => ({
-                    ...prev,
-                    [subcategoryId]: imagePath,
-                }));
-            }
-        }
-    };
-
-
-    const handleNewSubcategoryClick = async () => {
-        console.log(newSubCategory);
-        if (newSubCategory.length < 3 || newSubCategory.length > 50) {
-            alert('Subcategory name should between  3 and 10 characters.');
-            return;
-
-        }
-        await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateSubCategory`, { categoryId: selectedCategory.id, name: newSubCategory }); // Pass the productName
-        setNewSubCategory('');
-        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
+  const handleFileChange = async (event, subcategoryId) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const validFormats = ["image/png", "image/jpeg", "image/jpg"];
+    if (!validFormats.includes(file.type)) {
+      alert("Invalid file type. Only PNG and JPEG are allowed.");
+      return;
     }
-
-    const addNewServiceType = async (value) => {
-        await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateServicType`, { serviceType: value, isActive: true, subCategoryId: subCategoryId }); // Pass the productName
-
-        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
-
-    };
-
-    const addNewBrand = async (value) => {
-        await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateBrand`, { brandName: value, isActive: true, subCategoryId: subCategoryId }); // Pass the productName
-
-        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
-
-    };
-
-
-    const toggleSubCategory = async (subcategoryId, isActive) => {
-        //vaidate all available then only make active 
-        const subCategory = selectedCategory.subcategories.find((subcat) => subcat.id === subcategoryId)
-        console.log(subCategory)
-        if (!isActive && (subCategory.serviceTypes.length < 1 || subCategory.imageUrl == null)) {
-            return alert("Add Some Service type & display image , before activating.")
-        }
-
-        await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateSubCategory`, { id: subcategoryId, isActive: !isActive }); // Pass the productName
-
-        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
+    const imagePath = await uploadImage(file);
+    if (imagePath) {
+      setUploadedImages(prev => ({ ...prev, [subcategoryId]: imagePath }));
     }
+  };
 
-    const updateImage = async (subcategoryId) => {
-        console.log(uploadedImages[subcategoryId])
-        await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateSubCategory`, { id: subcategoryId, imageUrl: uploadedImages[subcategoryId] }); // Pass the productName
+  const submitDialog = async () => {
+    const val = dialog.action;
+    if (val === 'PRODUCT') await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateProduct`, { name: dialog.inputValue });
+    if (val === 'CATEGORY') await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateCategory`, { name: dialog.inputValue, productId: dialog.productId });
+    if (val === 'SERVICE_TYPE') await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateServicType`, { serviceType: dialog.inputValue, isActive: true, subCategoryId });
+    if (val === 'BRAND') await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateBrand`, { brandName: dialog.inputValue, isActive: true, subCategoryId });
+    setDialog({ open: false, action: null, productId: null, inputValue: '' });
+    setRefreshKey(k => k + 1);
+  };
 
-        setRefreshKey((prevKey) => prevKey + 1); // Increment refreshKey
+  const changeStatus = async (productId, status, action) => {
+    await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateProduct`, { id: productId, [action]: !status });
+    setRefreshKey(k => k + 1);
+  };
+
+  const changeCategoryStatus = async (categoryId, status, action) => {
+    await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateCategory`, { id: categoryId, [action]: !status });
+    setRefreshKey(k => k + 1);
+  };
+
+  const toggleSubCategory = async (subcategoryId, isActive) => {
+    const subCategory = selectedCategory?.subcategories.find(s => s.id === subcategoryId);
+    if (!isActive && (subCategory?.serviceTypes?.length < 1 || !subCategory?.imageUrl)) {
+      return alert("Add some service types & a display image before activating.");
     }
+    await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateSubCategory`, { id: subcategoryId, isActive: !isActive });
+    setRefreshKey(k => k + 1);
+  };
 
-    const Button = ({ onClick, children, className }) => (
-        <button onClick={onClick} className={`px-4 py-2 rounded-full ${className}`}>
-            {children}
-        </button>
-    );
+  const updateImage = async (subcategoryId) => {
+    await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateSubCategory`, { id: subcategoryId, imageUrl: uploadedImages[subcategoryId] });
+    setRefreshKey(k => k + 1);
+  };
 
-    return (
+  const handleNewSubcategoryClick = async () => {
+    if (newSubCategory.length < 3 || newSubCategory.length > 50) {
+      return alert('Subcategory name should be between 3 and 50 characters.');
+    }
+    await apiPost(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/product/saveOrUpdateSubCategory`, { categoryId: selectedCategory.id, name: newSubCategory });
+    setNewSubCategory('');
+    setRefreshKey(k => k + 1);
+  };
 
-        <diV>
-            { loading && (
-                <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
-                    <div className="w-16 h-16 border-4 border-[rgb(255,198,48)] border-t-transparent rounded-full animate-spin"></div>
-                </div>
-            )}
-
-
-            {/* Alert Modal */}
-            {
-                isAlertOpen && (
-                    <div className="fixed inset-0 flex items-center justify-center bg-[rgb(255,198,48)] bg-opacity-50">
-                        <div className="bg-white p-6 rounded shadow-lg w-96">
-                            <h3 className="text-lg font-semibold mb-2">Enter your {action}</h3>
-                            <input
-                                type="text"
-                                value={inputValue}
-                                onChange={(e) => setInputValue(e.target.value)}
-                                className="border p-2 w-full mb-4"
-                                placeholder="Type here..."
-                            />
-                            <div className="flex justify-end space-x-2">
-                                <Button onClick={closeAlert} className="px-4 py-2 bg-gray-500 text-white rounded">
-                                    Close
-              </Button>
-                                <Button onClick={submitAlert} className="px-4 py-2 bg-blue-500 text-white rounded">
-                                    OK
-              </Button>
-                            </div>
-                        </div>
-                    </div>
-                )
-            }
-
-            <div className="p-6 bg-white">
-                <h2 className="text-2xl font-semibold mb-4">Admin Panel</h2>
-
-                <table className="min-w-full border border-gray-300">
-                    <thead>
-                        <tr className="bg-gray-100">
-                            <th className="p-2 border">Sl No</th>
-                            <th className="p-2 border">Product</th>
-                            <th className="p-2 border">Home Page Enabled</th>
-                            <th className="p-2 border">Category</th>
-                            <th className="p-2 border">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {products.map((product, index) => (
-                            <tr key={product.id} className="border">
-                                <td className="p-2 border">{index + 1}</td>
-                                <td className="p-2 border">{product.name}</td>
-                                <td className="p-2 border">
-                                    {product.homePageEnabled ? (
-                                        <span onClick={() => changeStatus(product.id, product.homePageEnabled, 'homePageEnabled')} className="text-green-500 bg-gray-200 px-2 py-1 rounded-full mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Active</span>
-                                    ) : (
-                                        <span onClick={() => changeStatus(product.id, product.homePageEnabled, 'homePageEnabled')} className="text-red-500 bg-gray-200 px-2 py-1 rounded-full mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Inactive </span>
-                                    )}
-
-                                </td>
-                                <td className="p-2 border">
-                                    {product.categories.map((sub) => (
-                                        <span onClick={() => viewCategory(product.id, sub.id)} key={sub.id} className="inline-block bg-gray-200 px-3 py-1 rounded-full text-sm font-medium text-gray-700 m-1 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                            {sub.name}
-                                        </span>
-                                    ))}
-                                    {product.isActive ? (
-                                        <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                            <Button onClick={() => openAlert('CATEGORY', product.id)}>Add </Button>
-                                        </span>
-                                    ) : ''}
-                                </td>
-                                <td className="p-2 border">
-                                    {product.isActive ? (
-                                        <span onClick={() => changeStatus(product.id, product.isActive, 'isActive')} className="text-green-500 bg-gray-200 px-2 py-1 rounded-full mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Active</span>
-                                    ) : (
-                                        <span onClick={() => changeStatus(product.id, product.isActive, 'isActive')} className="text-red-500 bg-gray-200 px-2 py-1 rounded-full mr-1 hover:bg-[rgb(255,198,48)] cursor-pointer">Inactive </span>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                        <tr>
-                            <td className="p-2 border">{products.length + 1}</td>
-                            <td className="p-2 border">
-                                <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                    <Button onClick={() => openAlert('PRODUCT')}>Add </Button>
-                                </span>
-                            </td>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                        </tr>
-                    </tbody>
-                </table>
-
+  return (
+    <LoadingOverlay loading={loading}>
+      <div className="space-y-6">
+        {/* Input Dialog */}
+        <Modal isOpen={dialog.open} onClose={() => setDialog({ open: false, action: null, productId: null, inputValue: '' })} title={`Add ${dialog.action}`} size="sm">
+          <div className="space-y-4">
+            <Input
+              placeholder="Enter name..."
+              value={dialog.inputValue || ''}
+              onChange={(e) => setDialog(prev => ({ ...prev, inputValue: e.target.value }))}
+              autoFocus
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="secondary" onClick={() => setDialog({ open: false, action: null, productId: null, inputValue: '' })}>Cancel</Button>
+              <Button variant="primary" onClick={submitDialog}>Submit</Button>
             </div>
+          </div>
+        </Modal>
 
-            {/* Dropdown for selecting categories Type */}
-            {
-                selectedCategory && (
-                    <div className="p-6">
-                        <div className="flex">
-                            <span> <h2 className="text-2xl font-semibold mb-4">Category : {selectedCategory.name}  </h2>  </span>
-                            <span className='text-align right-0'> {selectedCategory.isActive ? (
-                                <span onClick={() => changeCategoryStatus(selectedCategory.id, selectedCategory.isActive, 'isActive')} className="text-green-500 bg-gray-200 px-2 py-1 rounded-full mr-1  hover:bg-[rgb(255,198,48)] cursor-pointer">Active</span>
-                            ) : (
-                                <span onClick={() => changeCategoryStatus(selectedCategory.id, selectedCategory.isActive, 'isActive')} className="text-red-500 bg-gray-200 px-2 py-1 rounded-full mr-1  hover:bg-[rgb(255,198,48)] cursor-pointer">Inactive </span>
-                            )}
-                            </span>
+        {/* Products Table */}
+        <Card padding={false}>
+          <div className="p-5 pb-0 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-surface-900">Products</h2>
+            <button onClick={() => setRefreshKey(k => k + 1)} className="p-1.5 rounded-lg text-surface-400 hover:text-primary-500 hover:bg-surface-100 transition-colors" title="Refresh">
+              <FiRefreshCw size={16} />
+            </button>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-surface-50 text-surface-500 text-xs font-semibold uppercase tracking-wider">
+                  <th className="text-left px-5 py-3">#</th>
+                  <th className="text-left px-5 py-3">Product</th>
+                  <th className="text-left px-5 py-3">Home Page</th>
+                  <th className="text-left px-5 py-3">Categories</th>
+                  <th className="text-left px-5 py-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-surface-100">
+                {products.map((product, index) => (
+                  <tr key={product.id} className="hover:bg-surface-50/50 transition-colors">
+                    <td className="px-5 py-3 text-surface-500">{index + 1}</td>
+                    <td className="px-5 py-3 font-medium text-surface-900">{product.name}</td>
+                    <td className="px-5 py-3">
+                      <Badge variant={product.homePageEnabled ? 'active' : 'inactive'}>
+                        {product.homePageEnabled ? 'Active' : 'Inactive'}
+                      </Badge>
+                      <button onClick={() => changeStatus(product.id, product.homePageEnabled, 'homePageEnabled')} className="ml-1.5 text-surface-400 hover:text-primary-500">
+                        <FiRefreshCw size={12} />
+                      </button>
+                    </td>
+                    <td className="px-5 py-3">
+                      <div className="flex flex-wrap gap-1.5">
+                        {product.categories.map(sub => (
+                          <button
+                            key={sub.id}
+                            onClick={() => { setSelectedCategory(sub); setSelectedProductId(product.id); }}
+                            className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full bg-surface-100 text-surface-600 hover:bg-primary-100 hover:text-primary-700 transition-colors"
+                          >
+                            {sub.name}
+                          </button>
+                        ))}
+                        {product.isActive && (
+                          <button onClick={() => setDialog({ open: true, action: 'CATEGORY', productId: product.id, inputValue: '' })} className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full bg-primary-100 text-primary-600 hover:bg-primary-200 transition-colors">
+                            <FiPlus size={12} className="mr-0.5" /> Add
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3">
+                      <Badge variant={product.isActive ? 'active' : 'inactive'}>
+                        {product.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                      <button onClick={() => changeStatus(product.id, product.isActive, 'isActive')} className="ml-1.5 text-surface-400 hover:text-primary-500">
+                        <FiRefreshCw size={12} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                <tr className="bg-surface-50/50">
+                  <td className="px-5 py-3 text-surface-500">{products.length + 1}</td>
+                  <td className="px-5 py-3">
+                    <Button size="sm" variant="outline" onClick={() => setDialog({ open: true, action: 'PRODUCT', productId: null, inputValue: '' })}>
+                      <FiPlus size={14} /> Add Product
+                    </Button>
+                  </td>
+                  <td></td>
+                  <td></td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </Card>
+
+        {/* Selected Category Details */}
+        {selectedCategory && (
+          <Card padding={false}>
+            <div className="p-5 pb-0 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-surface-900">
+                  Category: {selectedCategory.name}
+                </h2>
+                <Badge variant={selectedCategory.isActive ? 'active' : 'inactive'}>
+                  {selectedCategory.isActive ? 'Active' : 'Inactive'}
+                </Badge>
+                <button onClick={() => changeCategoryStatus(selectedCategory.id, selectedCategory.isActive, 'isActive')} className="text-surface-400 hover:text-primary-500">
+                  <FiRefreshCw size={12} />
+                </button>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-surface-50 text-surface-500 text-xs font-semibold uppercase tracking-wider">
+                    <th className="text-left px-5 py-3">#</th>
+                    <th className="text-left px-5 py-3">Subcategory</th>
+                    <th className="text-left px-5 py-3">Service Types</th>
+                    <th className="text-left px-5 py-3">Brands</th>
+                    <th className="text-left px-5 py-3">Image</th>
+                    <th className="text-left px-5 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-surface-100">
+                  {selectedCategory.subcategories.map((sub, i) => (
+                    <tr key={sub.id} className="hover:bg-surface-50/50 transition-colors">
+                      <td className="px-5 py-3 text-surface-500">{i + 1}</td>
+                      <td className="px-5 py-3 font-medium text-surface-900">{sub.name}</td>
+                      <td className="px-5 py-3">
+                        <div className="flex flex-wrap gap-1.5">
+                          {sub.serviceTypes.map(st => (
+                            <button
+                              key={st.id}
+                              onClick={() => openServiceModal(st.id, st.isActive)}
+                              className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full bg-surface-100 text-surface-600 hover:bg-primary-100 hover:text-primary-700 transition-colors"
+                            >
+                              {st.serviceType}
+                            </button>
+                          ))}
+                          <button onClick={() => { setDialog({ open: true, action: 'SERVICE_TYPE', inputValue: '' }); setSubCategoryId(sub.id); }} className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full bg-primary-100 text-primary-600 hover:bg-primary-200 transition-colors">
+                            <FiPlus size={12} className="mr-0.5" /> Add
+                          </button>
                         </div>
-                        <table className="min-w-full border border-gray-300">
-                            <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="p-2 border">Sl No</th>
-                                    <th className="p-2 border">Subcategory Name </th>
-                                    <th className="p-2 border">Service Type </th>
-                                    <th className="p-2 border">Service Sub Type </th>
-                                    <th className="p-2 border">Display Image</th>
-                                    <th className="p-2 border">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {selectedCategory.subcategories.map((subcategory, index) => (
-                                    <tr className="border">
-                                        <td className="p-2 border">
-                                            <div
-                                                key={subcategory.id}
-                                            >{index + 1}</div>
-                                        </td>
-                                        <td className="p-2 border">{subcategory.name}</td>
-                                        <td className="p-2 border ">
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex flex-wrap gap-1.5">
+                          {sub.brands.map(brand => (
+                            <span key={brand.brandName} className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full bg-surface-100 text-surface-600">
+                              {brand.brandName}
+                            </span>
+                          ))}
+                          <button onClick={() => { setDialog({ open: true, action: 'BRAND', inputValue: '' }); setSubCategoryId(sub.id); }} className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full bg-primary-100 text-primary-600 hover:bg-primary-200 transition-colors">
+                            <FiPlus size={12} className="mr-0.5" /> Add
+                          </button>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-2">
+                          {(uploadedImages[sub.id] || sub.imageUrl) && (
+                            <img src={uploadedImages[sub.id] || sub.imageUrl} alt="" className="w-10 h-10 rounded-lg object-cover border border-surface-200" />
+                          )}
+                          <label className="cursor-pointer p-1.5 rounded-lg text-surface-400 hover:text-primary-500 hover:bg-primary-50 transition-colors">
+                            <FiUpload size={14} />
+                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleFileChange(e, sub.id)} />
+                          </label>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-1.5">
+                          <Badge variant={sub.isActive ? 'active' : 'inactive'}>
+                            {sub.isActive ? 'Active' : 'Inactive'}
+                          </Badge>
+                          <button onClick={() => toggleSubCategory(sub.id, sub.isActive)} className="text-surface-400 hover:text-primary-500">
+                            <FiRefreshCw size={12} />
+                          </button>
+                          {uploadedImages[sub.id] && (
+                            <Button size="sm" variant="ghost" onClick={() => updateImage(sub.id)}>
+                              Save Image
+                            </Button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {/* Add new subcategory row */}
+                  <tr className="bg-surface-50/30">
+                    <td className="px-5 py-3 text-surface-500">{selectedCategory.subcategories.length + 1}</td>
+                    <td className="px-5 py-3">
+                      <Input
+                        placeholder="Subcategory name"
+                        value={newSubCategory}
+                        onChange={(e) => setNewSubCategory(e.target.value)}
+                        className="text-sm"
+                      />
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td className="px-5 py-3">
+                      <Button size="sm" variant="outline" onClick={handleNewSubcategoryClick}>
+                        <FiPlus size={14} /> Add
+                      </Button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        )}
 
-                                            {subcategory.serviceTypes.map((st) => (
-                                                <span key={st.serviceType} className="inline-block bg-gray-200 px-3 py-1 rounded-full text-sm font-medium text-gray-700 m-1 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                                    <Button onClick={() => { openServiceModal(st.id,st.isActive) }} >{st.serviceType}</Button>
-                                                </span>
-                                            ))}
-
-                                            <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)]">
-                                                <Button onClick={() => { openAlert('SERVICE_TYPE'); setSubCategoryId(subcategory.id); }} >Add </Button>
-                                            </span>
-
-                                          
-
-                                        </td>
-                                        <td className="p-2 border ">
-
-                                            {subcategory.brands.map((brand) => (
-                                                <span key={brand.brandName} className="inline-block bg-gray-200 px-3 py-1 rounded-full text-sm font-medium text-gray-700 m-1">
-                                                    {brand.brandName}
-                                                </span>
-
-                                            ))}
-
-                                            <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                                <Button onClick={() => { openAlert('BRAND'); setSubCategoryId(subcategory.id); }}>Add </Button>
-                                            </span>
-
-
-
-                                        </td>
-                                        <td className="p-2 border">
-                                            <img
-                                                src={uploadedImages[subcategory.id] || subcategory.imageUrl}
-                                                alt={subcategory.name}
-                                                className="w-20 h-20 object-cover rounded-lg mb-2"
-                                            />
-
-                                            <label className="w-full flex items-center justify-center p-2  text-green-500 rounded-lg cursor-pointer hover:bg-[rgb(255,198,48)] transition-all shadow-md">
-                                                <FiUpload className="mr-2 text-lg" />
-                                         Change Dispaly Image
-                                        <input
-                                                    type="file"
-                                                    className="hidden"
-                                                    multiple={false}
-                                                    onChange={(event) => handleFileChange(event, subcategory.id)}
-                                                />
-                                            </label>
-
-                                        </td>
-                                        <td className="p-2 border">{subcategory.isActive ? (
-                                            <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                                <Button onClick={() => toggleSubCategory(subcategory.id, subcategory.isActive)}>Active</Button></span>
-                                        ) : (
-                                            <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-red-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                                <Button onClick={() => toggleSubCategory(subcategory.id, subcategory.isActive)}>Inactive</Button> </span>
-                                        )}
-                                            {uploadedImages[subcategory.id] && (<span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                                <Button onClick={() => updateImage(subcategory.id)}>Update Image</Button></span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                                <tr>
-                                    <td className="p-2 border">{selectedCategory.subcategories.length + 1}</td>
-                                    <td className="p-2 border"><input
-                                        type="text"
-                                        value={newSubCategory}
-                                        onChange={(e) => setNewSubCategory(e.target.value)}
-                                        className="border p-2 w-full mb-4"
-                                        placeholder="Type Sub category name."
-                                    /></td>
-                                    <td className="p-2 border"></td>
-                                    <td className="p-2 border"></td>
-                                    <td className="p-2 border">
-
-                                    </td>
-                                    <td className="p-2 border"> <span className="bg-gray-200 px-2 py-1 rounded-full mr-1 text-green-500 hover:bg-[rgb(255,198,48)] cursor-pointer">
-                                        <Button onClick={() => handleNewSubcategoryClick()}>Add </Button>
-                                    </span></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-
-
-
-                )
-            }
-            {isServiceDtlModalOpen && (
-                <AdminServiceDetail serviceDetail = {serviceDetail} closeModal = {closeModal} serviceId = {serviceId} />
-
-            )}
-
-        </diV>
-
-
-
-    );
+        {/* Service Detail Modal */}
+        {isServiceDtlModalOpen && (
+          <AdminServiceDetail serviceDetail={serviceDetail} closeModal={closeModal} serviceId={serviceId} />
+        )}
+      </div>
+    </LoadingOverlay>
+  );
 };
 
 export default AdminProduct;

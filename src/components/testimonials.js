@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
+import { FiStar } from "react-icons/fi";
 
 const testimonials = [
   {
@@ -26,18 +26,19 @@ const testimonials = [
 ];
 
 const StarRating = ({ rating }) => {
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 !== 0;
-
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5;
+  const empty = 5 - full - (half ? 1 : 0);
   return (
-    <div className="flex text-yellow-500">
-      {[...Array(fullStars)].map((_, i) => (
-        <FaStar key={i} />
-      ))}
-      {hasHalfStar && <FaStarHalfAlt />}
-      {[...Array(5 - fullStars - (hasHalfStar ? 1 : 0))].map((_, i) => (
-        <FaRegStar key={i} />
-      ))}
+    <div className="flex gap-0.5 text-primary-500">
+      {[...Array(full)].map((_, i) => <FiStar key={`f${i}`} className="fill-primary-500" size={14} />)}
+      {half && (
+        <span className="relative">
+          <FiStar size={14} className="text-surface-200" />
+          <span className="absolute inset-0 overflow-hidden w-1/2"><FiStar className="fill-primary-500" size={14} /></span>
+        </span>
+      )}
+      {[...Array(empty)].map((_, i) => <FiStar key={`e${i}`} size={14} className="text-surface-200" />)}
     </div>
   );
 };
@@ -58,44 +59,44 @@ const Testimonials = () => {
   };
 
   useEffect(() => {
-    if (!isTouching) {
-      animationRef.current = requestAnimationFrame(autoScroll);
-    }
-
+    if (!isTouching) animationRef.current = requestAnimationFrame(autoScroll);
     return () => cancelAnimationFrame(animationRef.current);
-  }, [isTouching]);
+  }, [isTouching, autoScroll]);
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold text-center mb-6">What Our Customers Say</h2>
-      <div
-        className="flex gap-6 overflow-hidden"
-        ref={sliderRef}
-        onMouseEnter={() => setIsTouching(true)}
-        onMouseLeave={() => setIsTouching(false)}
-        onTouchStart={() => setIsTouching(true)}
-        onTouchEnd={() => setIsTouching(false)}
-        onTouchCancel={() => setIsTouching(false)}
-      >
-        {[...testimonials, ...testimonials].map((testimonial, index) => (
-          <div
-            key={index}
-            className="bg-white shadow-md rounded-lg p-4 w-64 min-w-[16rem] flex-shrink-0"
-          >
-            <img
-              src={testimonial.image}
-              alt={testimonial.name}
-              className="w-16 h-16 rounded-full mx-auto"
-            />
-            <h3 className="text-lg font-semibold text-center mt-2">{testimonial.name}</h3>
-            <p className="text-gray-600 text-sm text-center mt-1">{testimonial.review}</p>
-            <div className="flex justify-center mt-2">
-              <StarRating rating={testimonial.rating} />
+    <section className="py-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl sm:text-3xl font-bold text-surface-900 dark:text-white">What Our Customers Say</h2>
+          <p className="text-surface-500 dark:text-surface-400 mt-2">Real feedback from real people</p>
+        </div>
+
+        <div
+          ref={sliderRef}
+          className="flex gap-5 overflow-x-auto hide-scrollbar pb-2"
+          onMouseEnter={() => setIsTouching(true)}
+          onMouseLeave={() => setIsTouching(false)}
+          onTouchStart={() => setIsTouching(true)}
+          onTouchEnd={() => setIsTouching(false)}
+        >
+          {[...testimonials, ...testimonials].map((t, i) => (
+            <div
+              key={i}
+              className="bg-white rounded-2xl p-6 min-w-[280px] w-[280px] shrink-0 border border-surface-100 shadow-soft hover:shadow-soft-md transition-shadow"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <img src={t.image} alt={t.name} className="w-10 h-10 rounded-full object-cover" />
+                <div>
+                  <h3 className="text-sm font-semibold text-surface-900">{t.name}</h3>
+                  <StarRating rating={t.rating} />
+                </div>
+              </div>
+              <p className="text-sm text-surface-600 leading-relaxed">"{t.review}"</p>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
-    </div>
+    </section>
   );
 };
 

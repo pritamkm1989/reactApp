@@ -23,7 +23,7 @@ class CartForm {
 
         if (!this.category) errors.push({ field: 'category', message: "Category is required" });
         if (!this.subcategory) errors.push({ field: 'subcategory', message: "Subcategory is required" });
-        if (!this.type) errors.push({ field: 'type', message: "Service type is required" });
+        if (this.subcategory?.serviceTypes?.length > 0 && !this.type) errors.push({ field: 'type', message: "Service type is required" });
         //if (!this.brand) errors.push({ field: 'brand', message: "Brand type is required" });
         //if (!this.issueDescription) errors.push({ field: 'issueDescription', message: "Issue description is required" });
         //if (!this.address.street) errors.push({ field: 'street', message: "Street is required" });

@@ -1,96 +1,81 @@
 import React from "react";
-import { renderStars } from './utils';
+import { FiEye, FiStar } from "react-icons/fi";
+import { Card, Button, Img } from './ui';
 
-
+const renderStars = (rating) => {
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5;
+  const empty = 5 - full - (half ? 1 : 0);
+  return (
+    <div className="flex gap-0.5 text-primary-500">
+      {[...Array(full)].map((_, i) => <FiStar key={`f${i}`} className="fill-primary-500" size={14} />)}
+      {half && <FiStar className="fill-primary-500" size={14} />}
+      {[...Array(empty)].map((_, i) => <FiStar key={`e${i}`} size={14} className="text-surface-200" />)}
+    </div>
+  );
+};
 
 const ServiceList = ({ serviceDetail, serviceDetails, openModal }) => {
+  if (!Array.isArray(serviceDetails) || serviceDetails.length === 0) return null;
 
-  
-    return (
-
-        
-
-        <div className="mt-4 p-6 bg-white border rounded-lg shadow-lg transition-all">
-            <div className="flex flex-col gap-6 md:flex-row">
-                {/* Constant Section (Shows Selected Category & Subcategory Details) */}
-                <div className="w-full md:w-1/3 bg-gray-100 p-4 rounded-lg shadow-md flex items-center gap-4">
-                    <div className="flex-1">
-                        {serviceDetail && (
-                            <div className="mt-2">
-                                <p className="font-medium break-words whitespace-normal">{serviceDetail.name}</p>
-                                <p className="text-gray-500">Price: {serviceDetail.rate}</p>
-                                <p className="text-yellow-500 font-semibold">Review: {renderStars(serviceDetail.rattings)} </p>
-                                <ul className="list-disc pl-5 text-gray-700 mt-2">
-                                    {serviceDetail?.aboutService?.length > 0 ? (
-                                        serviceDetail.aboutService.slice(0, 2).map((service, idx) => (
-                                            <li key={idx} className="break-words whitespace-normal w-[200px]">
-                                                {service}
-
-                                            </li>
-                                        ))
-                                    ) : (
-                                        <p>No services available</p>
-                                    )}
-                                </ul>
-                                <button
-                                    onClick={() => openModal(serviceDetail)}
-                                    className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
-                                >
-                                    View More
-            </button>
-                            </div>
-                        )}
-                    </div>
+  return (
+    <Card>
+      <div className="flex flex-col lg:flex-row gap-6">
+        {serviceDetail && (
+          <div className="lg:w-1/3 shrink-0">
+            <div className="bg-surface-50 dark:bg-surface-800/50 rounded-xl p-4 h-full">
+              <div className="flex items-start gap-3 mb-3">
+                {serviceDetail.imageUrl && (
+                  <Img src={serviceDetail.imageUrl} alt="" className="w-16 h-16 rounded-lg object-cover shrink-0" />
+                )}
+                <div>
+                  <p className="font-semibold text-surface-900 dark:text-surface-100 text-sm">{serviceDetail.name}</p>
+                  <p className="text-primary-600 font-medium text-sm mt-0.5">₹{serviceDetail.rate}</p>
+                  <div className="mt-1">{renderStars(serviceDetail.rattings)}</div>
                 </div>
-                
-
-                {/* Scrollable Section (Responsive Layout) */}
-                <div className="w-full md:w-2/3 h-[300px] p-2 bg-gray-50 rounded-lg shadow-md  overflow-y-auto md:overflow-x-auto">
-                    <div  className="flex flex-col md:flex-row gap-2 whitespace-nowrap  space-y-4 md:space-y-0 md:space-x-4">
-                        {serviceDetails?.map((item, index) => (
-                            <div
-                                key={index}
-                                className="flex w-full items-center gap-4 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex-nowrap"
-                            >
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="text-lg font-bold text-gray-800">{item.name}</h3>
-                                    <p className="text-gray-500">Price: {item.rate}</p>
-                                    <p className="text-yellow-500 font-semibold">Review: {renderStars(item.rattings)}  </p>
-                                    <ul className="list-disc pl-5 text-gray-700 mt-2">
-                                        {item?.aboutService?.length > 0 ? (
-                                            item.aboutService.slice(0, 2).map((service, idx) => (
-                                                <li key={idx} className="break-words whitespace-normal w-[150px]">{service}1</li>
-                                            ))
-                                        ) : (
-                                            <p>No services available</p>
-                                        )}
-                                    </ul>
-                                    <button
-                                        onClick={() => openModal(item)}
-                                        className="mt-3 px-4 py-2 bg-[rgb(255,198,48)] text-white rounded-lg shadow-md transition"
-                                    >
-                                        View More
-            </button>
-                                </div>
-
-                                {/* Image Section */}
-                                <div className="flex-shrink-0 w-24 h-24 md:w-32 md:h-32 flex items-center justify-center">
-                                    {item.imageUrl && (
-                                        <img
-                                            src={item.imageUrl}
-                                            alt={item.name || "Service Image"}
-                                            className="w-full h-full object-cover rounded-md"
-                                            
-                                        />
-                                    ) }
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+              </div>
+              {serviceDetail?.aboutService?.length > 0 && (
+                <ul className="space-y-1 mt-3">
+                  {serviceDetail.aboutService.slice(0, 3).map((s, i) => (
+                    <li key={i} className="text-xs text-surface-600 dark:text-surface-400 flex gap-2">
+                      <span className="text-primary-500 mt-0.5">•</span>
+                      <span>{s}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <Button size="sm" variant="outline" className="mt-3 w-full" onClick={() => openModal(serviceDetail)}>
+                <FiEye size={14} />
+                View Details
+              </Button>
             </div>
+          </div>
+        )}
+
+        <div className={`flex-1 ${serviceDetail ? '' : 'w-full'}`}>
+          <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+            {serviceDetails.map((item, i) => (
+              <Card key={i} hover padding={false} className="min-w-[200px] w-[200px] shrink-0 cursor-pointer" onClick={() => openModal(item)}>
+                {item.imageUrl && (
+                  <div className="aspect-[4/3] overflow-hidden rounded-t-2xl bg-surface-100 dark:bg-surface-700">
+                    <Img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <div className="p-3">
+                  <p className="text-sm font-semibold text-surface-900 dark:text-surface-100 truncate">{item.name}</p>
+                  <p className="text-primary-600 font-medium text-xs mt-0.5">₹{item.rate}</p>
+                  <div className="mt-1">{renderStars(item.rattings)}</div>
+                  {item?.aboutService?.length > 0 && (
+                    <p className="text-xs text-surface-500 dark:text-surface-400 mt-1 line-clamp-2">{item.aboutService[0]}</p>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
-    );
+      </div>
+    </Card>
+  );
 };
 
 export default ServiceList;

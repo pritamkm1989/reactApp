@@ -1,12 +1,15 @@
-import React, { useState, useContext, useEffect } from "react";
-import { FiUpload } from "react-icons/fi";
-import CartForm from './request/CartForm'
+import React, { useState, useContext, useEffect, useMemo } from "react";
+import { FiUpload, FiShoppingCart, FiArrowRight } from "react-icons/fi";
+import { motion, AnimatePresence } from "framer-motion";
+import CartForm from './request/CartForm';
 import ServiceList from "./ServiceList";
 import ServiceDetail from "./ServiceDetails";
-import { CityContext } from '../CityContext'
+import { CartContext } from "../CartContext";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { CartContext } from "../CartContext";
+import { Button, Card, Textarea, Select, Spinner, Img } from './ui';
+import Stepper from './ui/Stepper';
+import { useToast } from './ui/Toast';
 
 const ApplianceRepairService = ({ items, title }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -16,394 +19,342 @@ const ApplianceRepairService = ({ items, title }) => {
   const [selectedBrand, setSelectedBrand] = useState(null);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [issueDescription, setIssueDescription] = useState("");
-  const [city, setCity] = useState("");
   const [errors, setErrors] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [serviceDetails, setServiceDetails] = useState("");
-  const [serviceDetail, setServiceDetail] = useState("");
+  const [serviceDetails, setServiceDetails] = useState([]);
+  const [serviceDetail, setServiceDetail] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   const navigate = useNavigate();
-
+  const addToast = useToast();
+  const { addToCart } = useContext(CartContext);
 
   const categories = items;
 
-  const handleCategoryClick = (category) => {
-    setSelectedCategory(category.id === selectedCategory ? null : category.id);
-    setSelectedCategoryName(category.name === selectedCategoryName ? null : category.name);
-    setSelectedSubcategory(null);
-    setSelectedType(null);
-    setSelectedBrand(null); // Reset brand on category change
-    setServiceDetail(null)
+  const selectedSub = useMemo(() => {
+    if (!selectedCategory || !selectedSubcategory) return null;
+    return categories
+      .find(c => c.id === selectedCategory)
+      ?.subcategories.find(s => s.id === selectedSubcategory.id);
+  }, [categories, selectedCategory, selectedSubcategory]);
+
+  const hasServiceTypes = selectedSub?.serviceTypes?.length > 0;
+  const hasBrands = selectedSub?.brands?.length > 0;
+
+  const serviceTypeIds = useMemo(() => {
+    if (hasServiceTypes) {
+      return selectedSub.serviceTypes.map(st => st.id);
+    }
+    return [];
+  }, [selectedSub, hasServiceTypes]);
+
+  useEffect(() => {
+    if (serviceTypeIds.length === 0) return;
+    setLoading(true);
+    axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/details?serviceIds=${serviceTypeIds.join(",")}`)
+      .then(response => setServiceDetails(response.data || []))
+      .catch(error => console.error("Error fetching service details:", error))
+      .finally(() => setLoading(false));
+  }, [serviceTypeIds]);
+
+  const fetchServiceDetails = (serviceId) => {
+    setLoading(true);
+    axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/details?serviceIds=${serviceId}`)
+      .then(response => setServiceDetail(response?.data?.[0] || null))
+      .catch(error => console.error("Error fetching service details:", error))
+      .finally(() => setLoading(false));
   };
 
-  const handleSubcategoryClick = (subcategory) => {
-    setSelectedSubcategory(subcategory);
+  const handleCategoryClick = (category) => {
+    setSelectedCategory(cat => cat?.id === category.id ? null : category.id);
+    setSelectedCategoryName(category.name);
+    setSelectedSubcategory(null);
     setSelectedType(null);
     setSelectedBrand(null);
-    setServiceDetail(null) // Reset brand on subcategory change
+    setServiceDetail(null);
   };
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    if (file) {
-      setUploadedImage(URL.createObjectURL(file));
-    }
+    if (file) setUploadedImage(URL.createObjectURL(file));
   };
 
-  const { addToCart } = useContext(CartContext)
+  const getError = (field) => errors.find(e => e.field === field)?.message || '';
 
-  const { selectedCity, toggleShowCities } = useContext(CityContext)
-
-  const getError = (field) => {
-    const error = errors.find(error => error.field === field);
-    return error ? error.message : '';
-  };
-
-  const hasError = (field) => {
-    return errors.some(error => error.field === field);
-  };
-
-  useEffect(() => {
-    if (selectedCity) {
-      console.log("Selected city changed:", selectedCity.name);
-      setCity(selectedCity.name)
-    }
-  }, [selectedCity]);
-
-  const handleServiceSelection = (origin) => {
-    console.log('handleServiceSelection')
+  const handleAddToCart = () => {
     const cartForm = new CartForm(
-      selectedCategoryName,
-      selectedSubcategory,
-      selectedType,
-      selectedBrand,
-      issueDescription,
-      uploadedImage
+      selectedCategoryName, selectedSubcategory, selectedType,
+      selectedBrand, issueDescription, uploadedImage
     );
-
-    console.log("Service Data:", city);
     const validationErrors = cartForm.validate();
-    console.log(validationErrors);
     if (validationErrors.length > 0) {
       setErrors(validationErrors);
-      alert(validationErrors[0]?.message);
+      addToast(validationErrors[0]?.message, 'error');
       return;
     }
-
-    console.log("Service Data:", cartForm); // Debug log
-
     addToCart(cartForm);
+    addToast('Added to cart successfully.', 'success');
+  };
 
-    console.log(origin);
-    if ('checkout' === origin) {
-      navigate("/cart");
-    }else{
-      alert('Added to cart successfully.');
-      setSelectedSubcategory(null);
-      setSelectedType(null);
-      setSelectedBrand(null); // Reset brand on category change
-      setServiceDetail(null)
+  const handleCheckout = () => {
+    const cartForm = new CartForm(
+      selectedCategoryName, selectedSubcategory, selectedType,
+      selectedBrand, issueDescription, uploadedImage
+    );
+    const validationErrors = cartForm.validate();
+    if (validationErrors.length > 0) {
+      setErrors(validationErrors);
+      addToast(validationErrors[0]?.message, 'error');
+      return;
     }
-
+    addToCart(cartForm);
+    navigate("/cart");
   };
 
+  const openModal = (item) => { setSelectedItem(item); setIsModalOpen(true); };
+  const closeModal = () => { setIsModalOpen(false); setSelectedItem(null); };
 
-  const serviceTypeIds = items
-    .flatMap((item) => item.subcategories) // Flatten subcategories
-    .flatMap((sub) => sub.serviceTypes) // Flatten serviceTypes
-    .map((serviceType) => serviceType.id); // Extract serviceTypeId
-
-  //console.log(serviceTypeIds);
-
-  useEffect(() => {
-    if (serviceTypeIds.length === 0) return;
-    setLoading(true); // Start loading before API call
-    const serviceTypeQuery = serviceTypeIds.join(",");
-    axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/details?serviceIds=${serviceTypeQuery}`) // 🔹 Replace with your actual API endpoint
-      .then(response => {
-        // Ensure response.data is in the expected format
-        console.log('service/details')
-        console.log(response.data);
-        setServiceDetails(response.data)
-      })
-      .catch(error => console.error("Error fetching service details:", error))
-      .finally(() => setLoading(false)); // Stop loading after API call
-  }, [selectedCategory]);
-
-  const fetchServiceDetils = (serviceId) => {
-    console.log('fetchServiceDetils-' + serviceId);
-    setLoading(true); // Start loading before API call
-    axios.get(`${process.env.REACT_APP_BE_APP_API_BASE_URL}/api/service/details?serviceIds=${serviceId}`) // 🔹 Replace with your actual API endpoint
-      .then(response => {
-        // Ensure response.data is in the expected format
-        console.log('service/details')
-        console.log(response.data);
-        setServiceDetail(response?.data[0])
-      })
-      .catch(error => console.error("Error fetching service details:", error))
-      .finally(() => setLoading(false)); // Stop loading after API call
-  }
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null);
-
-  const openModal = (item) => {
-    setSelectedItem(item);
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedItem(null);
-  };
+  const showDetails = selectedType || (!hasServiceTypes && selectedSubcategory);
+  const showTypeBrand = selectedSubcategory && hasServiceTypes;
 
   return (
-    <div className="p-4 bg-gray-100 min-h-screen">
-      { loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
-          <div className="w-16 h-16 border-4 border-[rgb(255,198,48)] border-t-transparent rounded-full animate-spin"></div>
+    <div className="space-y-6">
+      {loading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+          <Spinner size="lg" />
         </div>
       )}
-      <h1 className="text-center text-2xl font-semibold mb-4">{title}</h1>
+
+      {/* Title */}
+      {title && (
+        <h2 className="text-xl font-semibold text-surface-900 dark:text-white text-center">{title}</h2>
+      )}
+
+      {/* Progress Stepper */}
+      <Stepper
+        currentKey={
+          !selectedCategory ? 'category'
+          : !selectedSubcategory ? 'subcategory'
+          : hasServiceTypes && !selectedType ? 'type'
+          : 'details'
+        }
+        hideTypeStep={!hasServiceTypes}
+      />
 
       {/* Main Categories */}
-      {/* Desktop: Scrollable Row | Mobile: Multi-row List */}
-      <div className="w-full flex justify-center mb-8">
-        <div className="w-full sm:w-auto">
-          <div className="sm:flex sm:overflow-x-auto sm:whitespace-nowrap sm:scrollbar-hide sm:gap-6 sm:px-4">
-            {/* Mobile view - Display as Full Width List */}
-            <div className="flex flex-wrap gap-6 sm:gap-6 sm:mb-0">
-              {categories.map((category) => (
-                <div
-                  key={category.id}
-                  onClick={() => handleCategoryClick(category)}
-                  className={`w-full sm:w-auto p-4 bg-white border rounded-lg shadow-lg cursor-pointer 
-                  hover:bg-gray-200 transition-all ${selectedCategory === category.id ? "border-[rgb(255,198,48)]" : ""}`}
-                >
-                  <h2 className="text-center text-xl font-medium">{category.name}</h2>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+      <div className="flex flex-wrap justify-center gap-3">
+        {categories.map(category => (
+          <button
+            key={category.id}
+            onClick={() => handleCategoryClick(category)}
+            className={`px-5 py-2.5 text-sm font-medium rounded-xl transition-all ${
+              selectedCategory === category.id
+                ? 'bg-primary-500 text-white shadow-soft'
+                : 'bg-white dark:bg-surface-800 text-surface-600 dark:text-surface-300 border border-surface-200 dark:border-surface-700 hover:border-primary-300 dark:hover:border-primary-600 hover:text-primary-600 dark:hover:text-primary-400'
+            }`}
+          >
+            {category.name}
+          </button>
+        ))}
       </div>
 
-      {/* Next Component (add gap between sections) */}
-      <div className="next-component">
-        {/* Your next component content */}
-      </div>
-
-      {selectedCategory && (
-        <div className="w-full mb-6">
-          {/* Mobile View - Scrollable */}
-          <div className="block sm:hidden">
-            <div className="flex justify-start overflow-x-auto scrollbar-hide">
-              <div className="flex space-x-4 min-w-max">
-                {categories
-                  .find((category) => category.id === selectedCategory)
-                  .subcategories.map((subcategory) => (
-                    <div
-                      key={subcategory.id}
-                      onClick={() => handleSubcategoryClick(subcategory)}
-                      className={`w-48 p-4 bg-white border rounded-lg shadow-lg cursor-pointer hover:bg-gray-200 transition-all ${selectedSubcategory?.id === subcategory.id
-                        ? "border-[rgb(255,198,48)]"
-                        : ""
-                        }`}
-                    >
-                      <img
-                        src={subcategory.imageUrl}
-                        alt={subcategory.name}
-                        className="w-full h-44 object-cover rounded-lg mb-2"
+      {/* Subcategories */}
+      <AnimatePresence>
+        {selectedCategory && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
+              {categories
+                .find(c => c.id === selectedCategory)
+                ?.subcategories.map(sub => (
+                  <Card
+                    key={sub.id}
+                    hover
+                    padding={false}
+                    onClick={() => {
+                      setSelectedSubcategory(sub);
+                      setSelectedType(null);
+                      setSelectedBrand(null);
+                      setServiceDetail(null);
+                    }}
+                    className={`min-w-[160px] w-[160px] cursor-pointer ${
+                      selectedSubcategory?.id === sub.id
+                        ? 'ring-2 ring-primary-500 border-primary-500'
+                        : ''
+                    }`}
+                  >
+                      <div className="aspect-[4/3] overflow-hidden rounded-t-2xl bg-surface-100 dark:bg-surface-700">
+                      <Img
+                        src={sub.imageUrl}
+                        alt={sub.name}
+                        className="w-full h-full object-cover"
                       />
-                      <h3 className="text-center">{subcategory.name}</h3>
                     </div>
-                  ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Desktop View - Scrollable with items visible */}
-          <div className="hidden sm:block">
-            <div className="flex justify-center overflow-x-auto scrollbar-hide">
-              <div className="flex space-x-4 min-w-max">
-                {categories
-                  .find((category) => category.id === selectedCategory)
-                  .subcategories.map((subcategory) => (
-                    <div
-                      key={subcategory.id}
-                      onClick={() => handleSubcategoryClick(subcategory)}
-                      className={`w-48 p-4 bg-white border rounded-lg shadow-lg cursor-pointer hover:bg-gray-200 transition-all ${selectedSubcategory?.id === subcategory.id
-                        ? "border-[rgb(255,198,48)]"
-                        : ""
-                        }`}
-                    >
-                      <img
-                        src={subcategory.imageUrl}
-                        alt={subcategory.name}
-                        className="w-full h-44 object-cover rounded-lg mb-2"
-                      />
-                      <h3 className="text-center">{subcategory.name}</h3>
+                    <div className="p-3">
+                      <p className="text-sm font-medium text-surface-700 text-center truncate">
+                        {sub.name}
+                      </p>
                     </div>
-                  ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-
-      {/* Dropdown for selecting Service Type */}
-      {selectedSubcategory && (
-        <div className="mt-4 p-4 bg-white border rounded-lg shadow-lg">
-          <h3 className="text-lg font-medium mb-2">{selectedSubcategory.name}</h3>
-
-          {/* Flex Container for 2 Columns */}
-          <div className="flex gap-4 flex-nowrap">
-            {/* Service Type Dropdown (always present) */}
-            <div className="flex-1">
-              <label className="block text-gray-700 font-semibold mb-2">
-                Select Type:
-             </label>
-              <select
-                className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none"
-                onChange={(e) => { setSelectedType(e.target.value); setErrors(errors.filter(error => error.field !== 'type')); fetchServiceDetils(e.target.value) }}
-                value={selectedType || ""}
-              >
-                <option value="" disabled>
-                  Select an option
-               </option>
-                {selectedSubcategory.serviceTypes.map((type, index) => (
-                  <option key={index} value={type.id}>
-                    {type.serviceType}
-                  </option>
+                  </Card>
                 ))}
-              </select>
-              {errors.find(error => error.field === 'type') && (
-                <span className="text-red-500">{errors.find(error => error.field === 'type').message}</span>
-              )}
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            {/* Brand Dropdown (Only if available) */}
-            {selectedSubcategory.brands.length > 0 && (
-              <div className="flex-1">
-                <label className="block text-gray-700 font-semibold mb-2">
-                  Select Brand:
-               </label>
-                <select
-                  className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none"
-                  onChange=
-                  {(e) => {
-                    setSelectedBrand(e.target.value);
-                    setErrors(errors.filter(error => error.field !== 'brand')); // Remove error on selection
-                  }}
-                  value={selectedBrand || ""}
-                >
-                  <option value="" disabled>
-                    Select a brand
-                 </option>
-                  {selectedSubcategory.brands.map((brand, index) => (
-                    <option key={index} value={brand.brandName}>
-                      {brand.brandName}
-                    </option>
-                  ))}
-                </select>
-                {errors.find(error => error.field === 'brand') && (
-                  <span className="text-red-500">{errors.find(error => error.field === 'brand').message}</span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-      )}
-
-
-      {/* Text Area & Upload Section */}
-      {selectedType && (
-        <div className="mt-4 p-6 bg-white border rounded-lg shadow-lg transition-all">
-
-          {serviceDetail && (<h3 className="text-xl font-medium mb-4">
-            {serviceDetail.name}
-            {selectedBrand && ` - ${selectedBrand}`}
-          </h3>
-          )}
-
-          {/* Grid Layout for Side-by-Side Arrangement */}
-          <div className="grid grid-cols-2 gap-6">
-            {/* Text Area */}
-            <textarea
-              className="w-full p-3 border rounded-lg shadow-sm focus:ring-2 focus:ring-[rgb(255,198,48)] focus:outline-none transition-all resize-none"
-              placeholder={getError('issueDescription') || 'Please provide a detailed description of issue you are facing.'}
-              style={{
-                borderColor: hasError('issueDescription') ? 'red' : 'initial',
-                borderWidth: hasError('issueDescription') ? '2px' : '0'
+      {/* Service Type & Brand */}
+      <AnimatePresence>
+        {showTypeBrand && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="grid sm:grid-cols-2 gap-4"
+          >
+            <Select
+              label="Service Type"
+              value={selectedType || ""}
+              error={getError('type')}
+              onChange={(e) => {
+                setSelectedType(e.target.value);
+                setErrors(errors.filter(err => err.field !== 'type'));
+                fetchServiceDetails(e.target.value);
               }}
-              rows="4"
-              onChange={(e) => setIssueDescription(e.target.value)}
-              onFocus={() => setErrors(errors.filter(error => error.field !== 'issueDescription'))}
-            />
+            >
+              <option value="" disabled>Select type</option>
+              {selectedSubcategory.serviceTypes.map((type, i) => (
+                <option key={i} value={type.id}>{type.serviceType}</option>
+              ))}
+            </Select>
 
-            {/* Upload Section */}
-            {/* Upload Section */}
-            <div className="flex flex-col items-center">
-              <label className="w-full flex items-center justify-center p-3 bg-[rgb(255,198,48)] text-white rounded-lg cursor-pointer hover:bg-[rgb(255,198,48)] transition-all shadow-md">
-                <FiUpload className="mr-2 text-lg" />
-          Upload Images
-          <input
-                  type="file"
-                  className="hidden"
-                  multiple
-                  onChange={handleFileChange}
-                />
-              </label>
+            {hasBrands && (
+              <Select
+                label="Brand"
+                value={selectedBrand || ""}
+                error={getError('brand')}
+                onChange={(e) => {
+                  setSelectedBrand(e.target.value);
+                  setErrors(errors.filter(err => err.field !== 'brand'));
+                }}
+              >
+                <option value="" disabled>Select brand</option>
+                {selectedSubcategory.brands.map((brand, i) => (
+                  <option key={i} value={brand.brandName}>{brand.brandName}</option>
+                ))}
+              </Select>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-              {errors.find(error => error.field === 'uploadedImage') && (
-                <span className="text-red-500">{errors.find(error => error.field === 'uploadedImage').message}</span>
+      {/* Brand only (when no service types) */}
+      <AnimatePresence>
+        {selectedSubcategory && !hasServiceTypes && hasBrands && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="max-w-xs"
+          >
+            <Select
+              label="Brand"
+              value={selectedBrand || ""}
+              error={getError('brand')}
+              onChange={(e) => {
+                setSelectedBrand(e.target.value);
+                setErrors(errors.filter(err => err.field !== 'brand'));
+              }}
+            >
+              <option value="" disabled>Select brand</option>
+              {selectedSubcategory.brands.map((brand, i) => (
+                <option key={i} value={brand.brandName}>{brand.brandName}</option>
+              ))}
+            </Select>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Description & Upload */}
+      <AnimatePresence>
+        {showDetails && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Card>
+              {serviceDetail && (
+                <h3 className="text-lg font-medium text-surface-900 mb-4">
+                  {serviceDetail.name}
+                  {selectedBrand && <span className="text-surface-500"> — {selectedBrand}</span>}
+                </h3>
               )}
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Textarea
+                  label="Describe the issue"
+                  placeholder="Please provide a detailed description of the issue you're facing."
+                  rows={4}
+                  value={issueDescription}
+                  error={getError('issueDescription')}
+                  onChange={(e) => {
+                    setIssueDescription(e.target.value);
+                    setErrors(errors.filter(err => err.field !== 'issueDescription'));
+                  }}
+                />
+                <div className="flex flex-col items-center justify-center gap-3">
+                  {uploadedImage && (
+                    <Img
+                      src={uploadedImage}
+                      alt="Uploaded preview"
+                      className="w-24 h-24 object-cover rounded-xl border border-surface-200"
+                    />
+                  )}
+                  <label className="flex items-center gap-2 px-4 py-2.5 bg-primary-50 text-primary-700 text-sm font-medium rounded-xl cursor-pointer hover:bg-primary-100 transition-colors border border-primary-200">
+                    <FiUpload size={16} />
+                    Upload Image
+                    <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                  </label>
+                  {getError('uploadedImage') && (
+                    <p className="text-xs text-error">{getError('uploadedImage')}</p>
+                  )}
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            </div>
-          </div>
-        </div>
+      {/* Service List */}
+      {showDetails && (
+        <ServiceList
+          serviceDetail={serviceDetail}
+          serviceDetails={serviceDetails || []}
+          openModal={openModal}
+        />
       )}
 
-      {/* Next Component (add gap between sections) */}
-      <div className="next-component">
-        {/* Your next component content */}
-        <hr />
-      </div>
+      {/* Detail Modal */}
+      {isModalOpen && selectedItem && (
+        <ServiceDetail selectedItem={selectedItem} closeModal={closeModal} />
+      )}
 
-      <ServiceList
-        serviceDetail={serviceDetail}
-        serviceDetails={serviceDetails || []}
-        openModal={openModal}
-      />
-      {/* Modal Popup */}
-      {
-        isModalOpen && selectedItem && (
-          <ServiceDetail selectedItem={selectedItem}   closeModal={closeModal} />
-        )
-      }
-
-
-      <div className="mt-6 flex gap-4">
-        <button
-          onClick={() => handleServiceSelection('addTocart')}
-          className="flex-1 bg-[rgb(255,198,48)] text-white py-2 rounded-lg transition-all shadow-md"
-        >
+      {/* Action Buttons */}
+      <div className="flex gap-3 pt-2">
+        <Button variant="secondary" size="lg" className="flex-1" onClick={handleAddToCart}>
+          <FiShoppingCart size={18} />
           Add to Cart
-  </button>
-
-        <button
-          onClick={() => handleServiceSelection('checkout')}
-          className="flex-1 bg-[rgb(255,198,48)] text-white py-2 rounded-lg transition-all shadow-md"
-        >
-
-
-          Check out
-
-        </button>
+        </Button>
+        <Button variant="primary" size="lg" className="flex-1" onClick={handleCheckout}>
+          Checkout
+          <FiArrowRight size={18} />
+        </Button>
       </div>
-    </div >
+    </div>
   );
 };
 
