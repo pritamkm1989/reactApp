@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { FiPlus, FiUpload, FiRefreshCw, FiChevronRight, FiArrowLeft } from "react-icons/fi";
+import { FiPlus, FiUpload, FiRefreshCw, FiChevronRight } from "react-icons/fi";
 import api from '../services/api';
 import AdminServiceDetail from './AdminServiceDetail';
 import { Button, Card, Badge, LoadingOverlay, Modal, Input, Img } from './ui';
+import { useToast } from './ui/Toast';
 
 const views = { PRODUCTS: 'products', CATEGORIES: 'categories', SUBCATEGORIES: 'subcategories' };
 
@@ -10,6 +11,7 @@ const AdminProduct = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const addToast = useToast();
 
   // Navigation
   const [view, setView] = useState(views.PRODUCTS);
@@ -74,15 +76,33 @@ const AdminProduct = () => {
   };
 
   const toggleCategoryStatus = async (category) => {
+    if (!category.isActive) {
+      const activeSubs = category.subcategories?.filter(s => s.isActive) || [];
+      if (activeSubs.length === 0) {
+        addToast('Activate at least one subcategory before activating this category.', 'error');
+        return;
+      }
+    }
     await api.saveCategory({ id: category.id, isActive: !category.isActive });
+    addToast(`Category ${category.isActive ? 'deactivated' : 'activated'}.`, 'success');
     refresh();
   };
 
   const toggleSubCategory = async (sub) => {
-    if (!sub.isActive && (sub.serviceTypes?.length < 1 || !sub.imageUrl)) {
-      return alert("Add service types & a display image before activating.");
+    if (!sub.isActive) {
+      const activeServiceTypes = sub.serviceTypes?.filter(st => st.isActive) || [];
+      const activeBrands = sub.brands?.filter(b => b.isActive) || [];
+      const missing = [];
+      if (activeServiceTypes.length === 0) missing.push('at least one active service type');
+      if (activeBrands.length === 0) missing.push('at least one active brand');
+      if (!sub.imageUrl) missing.push('a display image');
+      if (missing.length > 0) {
+        addToast(`Cannot activate: add ${missing.join(', ')} first.`, 'error');
+        return;
+      }
     }
     await api.saveSubCategory({ id: sub.id, isActive: !sub.isActive });
+    addToast(`Subcategory ${sub.isActive ? 'deactivated' : 'activated'}.`, 'success');
     refresh();
   };
 
@@ -90,7 +110,7 @@ const AdminProduct = () => {
     const file = e.target.files[0];
     if (!file) return;
     if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type))
-      return alert("Only PNG and JPEG allowed.");
+      return addToast("Only PNG and JPEG allowed.", 'error');
     const imagePath = await api.uploadImage(file);
     if (imagePath) setUploadedImages(prev => ({ ...prev, [subId]: imagePath }));
   };
@@ -103,7 +123,7 @@ const AdminProduct = () => {
 
   const handleAddSubcategory = async () => {
     if (newSubCategory.length < 3 || newSubCategory.length > 50)
-      return alert('Subcategory name must be 3-50 characters.');
+      return addToast('Subcategory name must be 3-50 characters.', 'error');
     await api.saveSubCategory({ categoryId: selectedCategory.id, name: newSubCategory });
     setNewSubCategory('');
     refresh();

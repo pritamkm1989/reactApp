@@ -6,11 +6,14 @@ import AboutPage from './pages/about';
 import ServicePage from './pages/ourservice';
 import AdminPage from './pages/admin';
 import Cart from './pages/cart';
+import StorePage from './pages/store';
 import ContactPage from './pages/contact';
 import NotFoundPage from './pages/404';
 import { CartProvider } from './CartContext';
 import { CityProvider } from './CityContext';
 import { ThemeProvider } from './ThemeContext';
+import { AuthProvider } from './AuthContext';
+import { ToastProvider } from './components/ui/Toast';
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
@@ -28,6 +31,7 @@ const AnimatedRoutes = () => {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/service" element={<ServicePage />} />
           <Route path="/cart" element={<Cart />} />
+          <Route path="/store" element={<StorePage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="*" element={<NotFoundPage />} />
@@ -42,9 +46,13 @@ const App = () => {
     <ThemeProvider>
       <CityProvider>
         <CartProvider>
-          <Router>
-            <AnimatedRoutes />
-          </Router>
+          <AuthProvider>
+          <ToastProvider>
+            <Router>
+              <AnimatedRoutes />
+            </Router>
+          </ToastProvider>
+          </AuthProvider>
         </CartProvider>
       </CityProvider>
     </ThemeProvider>

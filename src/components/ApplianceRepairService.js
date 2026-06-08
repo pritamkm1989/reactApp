@@ -5,6 +5,7 @@ import CartForm from './request/CartForm';
 import ServiceList from "./ServiceList";
 import ServiceDetail from "./ServiceDetails";
 import { CartContext } from "../CartContext";
+import { useAuth } from "../AuthContext";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import { Button, Card, Textarea, Select, Spinner, Img } from './ui';
@@ -28,7 +29,8 @@ const ApplianceRepairService = ({ items, title }) => {
 
   const navigate = useNavigate();
   const addToast = useToast();
-  const { addToCart } = useContext(CartContext);
+  const { user } = useAuth();
+  const { addToCart, addToWishlist } = useContext(CartContext);
 
   const categories = items;
 
@@ -85,7 +87,10 @@ const ApplianceRepairService = ({ items, title }) => {
   const handleAddToCart = () => {
     const cartForm = new CartForm(
       selectedCategoryName, selectedSubcategory, selectedType,
-      selectedBrand, issueDescription, uploadedImage
+      selectedBrand, issueDescription, uploadedImage,
+      undefined, undefined, undefined, undefined, undefined, undefined,
+      serviceDetail?.rate ? Number(serviceDetail.rate) : 0,
+      serviceDetail?.discount ? Number(serviceDetail.discount) : 0
     );
     const validationErrors = cartForm.validate();
     if (validationErrors.length > 0) {
@@ -93,7 +98,11 @@ const ApplianceRepairService = ({ items, title }) => {
       addToast(validationErrors[0]?.message, 'error');
       return;
     }
-    addToCart(cartForm);
+    if (user?.id) {
+      addToWishlist(cartForm, user.id, user.name);
+    } else {
+      addToCart(cartForm);
+    }
     addToast('Added to cart successfully.', 'success');
   };
 

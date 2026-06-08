@@ -2,10 +2,12 @@ import React, { useState, useEffect } from "react";
 import { FiUpload, FiPlus, FiTrash2 } from "react-icons/fi";
 import api from '../services/api';
 import { Modal, Button, Input, Badge, Spinner } from './ui';
+import { useToast } from './ui/Toast';
 
 const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
   const [uploadedImages, setUploadedImages] = useState({});
   const [loading, setLoading] = useState(false);
+  const addToast = useToast();
   const [form, setForm] = useState({
     name: "", imageUrl: "", rate: "", discount: "",
     aboutService: [], howItWorks: [], faq: []
@@ -24,7 +26,7 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
     const file = event.target.files[0];
     if (!file) return;
     if (!["image/png", "image/jpeg", "image/jpg"].includes(file.type))
-      return alert("Only PNG and JPEG allowed.");
+      return addToast("Only PNG and JPEG allowed.", 'error');
     const imagePath = await api.uploadImage(file);
     if (imagePath) setUploadedImages(prev => ({ ...prev, [key]: imagePath }));
   };
@@ -72,21 +74,33 @@ const AdminServiceDetail = ({ serviceDetail, closeModal, serviceId }) => {
     form.isActive = true;
     try {
       await api.saveServiceDetails(serviceId, form);
+      addToast('Service details saved.', 'success');
       closeModal();
     } catch (err) {
-      console.error("Error saving service detail:", err);
+      addToast('Failed to save service details.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const changeStatus = async () => {
+    if (!form.isActive) {
+      const missing = [];
+      if (!form.name) missing.push('service name');
+      if (!form.rate) missing.push('rate');
+      if (!form.imageUrl && !uploadedImages.details) missing.push('display image');
+      if (missing.length > 0) {
+        addToast(`Cannot activate: add ${missing.join(', ')} first.`, 'error');
+        return;
+      }
+    }
     setLoading(true);
     try {
       await api.saveServiceType({ id: serviceId, isActive: !form.isActive });
+      addToast(`Service ${form.isActive ? 'deactivated' : 'activated'}.`, 'success');
       closeModal();
     } catch (err) {
-      console.error("Error changing status:", err);
+      addToast('Failed to change status.', 'error');
     } finally {
       setLoading(false);
     }

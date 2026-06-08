@@ -3,13 +3,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useLocation } from "react-router-dom";
 import { CartContext } from "../CartContext";
 import { CityContext } from "../CityContext";
-import { FiMapPin, FiBell, FiUser, FiMenu, FiX, FiMoon, FiSun } from "react-icons/fi";
+import { useAuth } from '../AuthContext';
+import { FiMapPin, FiBell, FiUser, FiLogOut, FiMenu, FiX, FiMoon, FiSun, FiChevronDown } from "react-icons/fi";
 import { useTheme } from '../ThemeContext';
 import LoginModal from './LoginForm';
 import urbex from "../img/urbex.png";
 import urbexDark from "../img/urbex.png";
 
 const navLinks = [
+  { to: "/store", label: "Store" },
   { to: "/service", label: "Services" },
   { to: "/about", label: "About Us" },
   { to: "/contact", label: "Contact" },
@@ -19,11 +21,13 @@ const navLinks = [
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
   const { cart } = useContext(CartContext);
   const { cities, toggleShowCities, showCities, selectedCity, addCity } = useContext(CityContext);
   const { dark, toggleTheme } = useTheme();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10);
@@ -119,13 +123,48 @@ const Header = () => {
                 {dark ? <FiSun size={18} /> : <FiMoon size={18} />}
               </button>
 
-              {/* Login */}
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
-                className="p-2 rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors"
-              >
-                <FiUser size={18} />
-              </button>
+              {/* User */}
+              {user ? (
+                <div className="relative">
+                  <button onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center gap-1.5 p-1.5 pr-2.5 rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors">
+                    <div className="w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex items-center justify-center text-xs font-bold">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="hidden sm:inline text-sm font-medium text-surface-700 dark:text-surface-300 max-w-[100px] truncate">
+                      {user.name}
+                    </span>
+                    {user.role && user.role !== 'user' && (
+                      <span className="hidden sm:inline text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400">{user.role}</span>
+                    )}
+                    <FiChevronDown size={12} />
+                  </button>
+                  <AnimatePresence>
+                    {showUserMenu && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute right-0 mt-2 w-44 bg-white dark:bg-surface-800 rounded-xl shadow-soft-lg border border-surface-100 dark:border-surface-700 py-1 z-50"
+                      >
+                        <div className="px-4 py-2 text-sm text-surface-500 dark:text-surface-400 border-b border-surface-100 dark:border-surface-700">
+                          {user.email}
+                        </div>
+                        <button onClick={() => { logout(); setShowUserMenu(false); }}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">
+                          <FiLogOut size={14} /> Sign Out
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <button onClick={() => setIsLoginModalOpen(true)}
+                  className="p-2 rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors">
+                  <FiUser size={18} />
+                </button>
+              )}
 
               {/* Cart */}
               <Link to="/cart" className="relative p-2 rounded-lg text-surface-500 dark:text-surface-400 hover:text-surface-700 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800 transition-colors">

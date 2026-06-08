@@ -1,11 +1,13 @@
 class CartForm {
-    constructor(category, subcategory, type, brand, issueDescription, uploadedImage, street, landmark, city, state, email, mobile) {
+    constructor(category, subcategory, type, brand, issueDescription, uploadedImage, street, landmark, city, state, email, mobile, price, discount) {
         this.category = category;
         this.subcategory = subcategory;
         this.type = type;
         this.brand = brand;
         this.issueDescription = issueDescription;
         this.uploadedImage = uploadedImage;
+        this.price = price || 0;
+        this.discount = discount || 0;
         this.address = {
             street: street,
             landmark: landmark,
