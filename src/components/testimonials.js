@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FiStar } from "react-icons/fi";
 
 const testimonials = [
@@ -48,7 +48,7 @@ const Testimonials = () => {
   const animationRef = useRef(null);
   const [isTouching, setIsTouching] = useState(false);
 
-  const autoScroll = () => {
+  const autoScroll = useCallback(() => {
     if (sliderRef.current && !isTouching) {
       sliderRef.current.scrollLeft += 1;
       if (sliderRef.current.scrollLeft >= sliderRef.current.scrollWidth / 2) {
@@ -56,7 +56,7 @@ const Testimonials = () => {
       }
       animationRef.current = requestAnimationFrame(autoScroll);
     }
-  };
+  }, [isTouching]);
 
   useEffect(() => {
     if (!isTouching) animationRef.current = requestAnimationFrame(autoScroll);
